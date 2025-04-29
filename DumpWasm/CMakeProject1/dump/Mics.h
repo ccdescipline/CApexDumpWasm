@@ -106,6 +106,13 @@ public:
         }
         output["studioHdr"] = studioHdr;
 
+        //find string lastVisibleTime
+        uint64_t lastVisibleTime = Pattern::FindPatternByProc<uint64_t>(ctx.data,("F3 41 0F 10 81 ? ? ? ? 66 3B 77 4E 0F 83 ? ? ? ? 4C 8B 57 30 45 0F B7 62 ? 66 45 85 E4 0F 84 ? ? ? ?"),[&](uint64_t addr, uint64_t base)->uint64_t {
+            return (uint64_t)(*(UINT32*)( (uint64_t)addr + 5));
+        });
+
+        output["lastVisibleTime"] = lastVisibleTime;
+
 //m_vecAbsOrigin = *(UINT32*)((FindPattern(E("F3 0F 7E 97")) + 4));
 
         uint64_t m_vecAbsOrigin = Pattern::FindPatternByProc<uint64_t>(ctx.data,("F3 0F 7E 97"), [&](uint64_t addr, uint64_t base)->uint64_t {
