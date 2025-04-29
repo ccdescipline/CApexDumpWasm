@@ -44,7 +44,7 @@ public:
 
         if (!matches.size()) return false;
 
-        std::cout << "matches.size()" << matches.size() << std::endl;
+        //std::cout << "matches.size()" << matches.size() << std::endl;
         //LogE("matches %d", matches.size());
 
         for (auto i = size_t(); i < matches.size(); i++)

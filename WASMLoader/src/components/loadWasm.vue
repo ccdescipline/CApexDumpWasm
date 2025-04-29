@@ -1,7 +1,5 @@
 <script setup>
 import { onMounted, ref } from "vue";
-import myWasmUrl from "../wasm/main.wasm?url";
-import MainModule from "../wasm/main.js";
 import DumpWasmModule from "../wasm/DumpWasm.js";
 
 let CmakeModuleInstanse;
@@ -181,7 +179,7 @@ const handleExport = function(){
         :on-change="handleFileChange"
         :show-file-list="false"
       >
-        <el-button type="primary">选择文件</el-button>
+        <el-button type="primary">Select File</el-button>
       </el-upload>
       <span v-if="isDump">
         <el-input
@@ -190,7 +188,7 @@ const handleExport = function(){
         @input="handleInputChange"
         placeholder="Search"
       />
-        <el-button type="primary" @click="handleExport" style="margin-left: 10px">导出</el-button>
+        <el-button type="primary" @click="handleExport" style="margin-left: 10px">Export to Json</el-button>
       </span>
       
     </div>

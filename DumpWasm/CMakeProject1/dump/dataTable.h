@@ -76,7 +76,7 @@ public:
                 }
             }
 
-            std::cout << "parrten1 table count " <<  offsets.size() << std::endl;
+            //std::cout << "parrten1 table count " <<  offsets.size() << std::endl;
             output = offsets;
         }
 
@@ -104,7 +104,7 @@ public:
                 }
             }
 
-            std::cout << "parrten2 table count " <<  offsets.size()<< std::endl;
+            //std::cout << "parrten2 table count " <<  offsets.size()<< std::endl;
             output = offsets;
         }
 
