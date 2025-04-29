@@ -14,7 +14,7 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET DumpWasm PROPERTY CXX_STANDARD 20)
 endif()
 
-
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/../WASMLoader/src/wasm)
 
 target_link_options(DumpWasm PRIVATE
   "SHELL:-sEXPORT_ES6=1"

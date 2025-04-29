@@ -65,8 +65,7 @@
           "binaryDir": "${sourceDir}/build/emscripten",
           "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release",
-            "CMAKE_TOOLCHAIN_FILE": "C:/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
-            "CMAKE_PREFIX_PATH": "C:/vcpkg/installed/emscripten-wasm32/"
+            "CMAKE_TOOLCHAIN_FILE": "C:/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
           }
         }
     ]
