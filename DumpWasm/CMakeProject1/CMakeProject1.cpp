@@ -11,7 +11,7 @@
 #include "dump/buttons.h"
 #include "dump/dataMap.h"
 #include "dump/Mics.h"
-
+#include "dump/weaponSettings.h"
 
 auto  get_image_base_from_pe_string(const std::string& pe_data) ->std::uint64_t {
 	// 1. 安全检查
@@ -81,6 +81,10 @@ extern "C" {
         std::map<std::string, uint64_t> misc;
         Mics::dump(ctx,misc);
         resJson["Mics"] = misc;
+
+        std::map<std::string, uint64_t> weaponsettings;
+        weaponSettings::dump(ctx, weaponsettings);
+        resJson["weaponSettings"] = weaponsettings;
 
         printstr = resJson.dump();
         *output = printstr.data();

@@ -35,6 +35,8 @@ ${formatRecvTable(dumpObj.value["RecvTable"])}
 ${formatConvar(dumpObj.value["Convars"])}
 
 ${formatdataMap(dumpObj.value["dataMap"])}
+
+${formatWeaponSettings(dumpObj.value["weaponSettings"])}
 `;
 };
 
@@ -53,6 +55,15 @@ const formatConvar = function (ConVarsObj) {
 
   return `[Convars] \n${ConvarformattedData.join("\n")}`;
 };
+
+const formatWeaponSettings = function (ConVarsObj) {
+  const ConvarformattedData = Object.entries(ConVarsObj).map(([key, value], index) => {
+    return `${key == "" ? "{empty}" : key} = 0x${value.toString(16)}`;
+  });
+
+  return `[weaponSettings] \n${ConvarformattedData.join("\n")}`;
+};
+
 
 const formatButtons = function (ConVarsObj) {
   const ConvarformattedData = Object.entries(ConVarsObj).map(([key, value], index) => {

@@ -8,7 +8,8 @@ add_executable (DumpWasm "CMakeProject1.cpp" "CMakeProject1.h" "NT/NTHeader.h" "
         dump/buttons.h
         dump/dataMap.h
         dump/Mics.h
-        3rd/Log.h)
+        3rd/Log.h
+        dump/weaponSettings.h)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET DumpWasm PROPERTY CXX_STANDARD 20)
