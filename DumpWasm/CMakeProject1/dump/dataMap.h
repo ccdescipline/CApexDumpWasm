@@ -92,6 +92,9 @@ public:
 
 
             //LogE("cstr %s", cstr);
+            if(!PS::In(ctx.baseAddress,ctx.data.size(),(uint64_t)( maps->m_dataDesc),8)){
+                continue;
+            }
             auto desc = reinterpret_cast<const DataTypeDesc*>(maps->m_dataDesc - ctx.baseAddress + ctx.data.data());
 
             for (auto j = 0u; j < maps->m_dataNumFields; j++)
