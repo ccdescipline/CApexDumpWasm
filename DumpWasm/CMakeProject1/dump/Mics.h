@@ -19,7 +19,7 @@
 class Mics{
 public:
     inline static bool dump(dumpContext ctx,std::map<std::string, uint64_t>& output,std::vector<std::string>& errorlist){
-        uint64_t LocalPlayer = Pattern::FindPattern<uint64_t>(ctx.data,("48 8D 0D ? ? ? ? 48 8B D7 FF 50 59"),7);
+        uint64_t LocalPlayer = Pattern::FindPattern<uint64_t>(ctx.data,("48 8D 0D ? ? ? ? 48 8B D7 FF 50 58"),7);
         LogE("LocalPlayer : 0x%llx", LocalPlayer);
         if (!LocalPlayer) {
             errorlist.push_back("LocalPlayer un find");
