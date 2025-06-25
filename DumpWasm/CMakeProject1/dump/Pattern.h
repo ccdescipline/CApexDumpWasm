@@ -80,6 +80,10 @@ public:
 
 		PBYTE findaddress = FindPattern_Wrapper((PBYTE)dumpdata.data(), dumpdata.length(), Pattern);
 
+        if(!findaddress){
+            return NULL;
+        }
+
 		if (RVAsize > 0) {
 			findaddress = (PBYTE)RVA(findaddress, RVAsize);
 		}
@@ -93,8 +97,10 @@ public:
 
 		PBYTE findaddress = FindPattern_Wrapper((PBYTE)dumpdata.data(), dumpdata.length(), Pattern);
 
+        if(!findaddress){
+            return NULL;
+        }
 
-
-		return (Ret)proc((uint64_t)((uint64_t)findaddress), (uint64_t)dumpdata.data());
+		return reinterpret_cast<Ret>(proc(reinterpret_cast<uint64_t>(findaddress), reinterpret_cast<uint64_t>(dumpdata.data()))) ;
 	}
 };

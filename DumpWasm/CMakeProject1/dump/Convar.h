@@ -13,7 +13,7 @@ public:
 		{
 			std::uint64_t m_vTable;          // 0x0000
 			std::uint64_t m_pNext;           // 0x0008
-			std::uint64_t m_bRegistered;     // 0x0010
+//			std::uint64_t m_bRegistered;     // 0x0010
 			std::uint64_t m_pszName;         // 0x0018
 			std::uint64_t m_pszDescription;  // 0x0020
 			std::uint64_t m_pszDataType;     // 0x0028

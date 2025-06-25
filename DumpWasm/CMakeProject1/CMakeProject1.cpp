@@ -6,7 +6,8 @@
 #include "NT\NTHeader.h"
 #include <string>
 #include "dump\Convar.h"
-#include "include\json.hpp"
+//#include "include\json.hpp"
+#include <nlohmann/json.hpp>
 #include "dump/dataTable.h"
 #include "dump/buttons.h"
 #include "dump/dataMap.h"
@@ -41,6 +42,7 @@ auto  get_image_base_from_pe_string(const std::string& pe_data) ->std::uint64_t 
 }
 
 static std::string printstr = "hello world";
+static std::string printstrError = "hello world";
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
@@ -49,7 +51,7 @@ extern "C" {
     }
 
 	EMSCRIPTEN_KEEPALIVE
-    bool dumpAll(const uint8_t* data, size_t size,char ** output) {
+    bool dumpAll(const uint8_t* data, size_t size,char ** output,char ** outputError) {
 		// 将数据转换为 std::vector<uint8_t> 或 std::string 来处理
 		std::string dataStr(reinterpret_cast<const char*>(data), size);
 		
@@ -58,6 +60,8 @@ extern "C" {
 		dumpContext ctx = dumpContext(dataStr, base);
 
         nlohmann::json resJson;
+        nlohmann::json errorJson;
+        std::vector<std::string> errorList;
 
         std::map<std::string, uint64_t> convars;
 
@@ -79,7 +83,7 @@ extern "C" {
         resJson["dataMap"] = dataMap;
 
         std::map<std::string, uint64_t> misc;
-        Mics::dump(ctx,misc);
+        Mics::dump(ctx,misc,errorList);
         resJson["Mics"] = misc;
 
         std::map<std::string, uint64_t> weaponsettings;
@@ -88,6 +92,10 @@ extern "C" {
 
         printstr = resJson.dump();
         *output = printstr.data();
+
+        errorJson = errorList;
+        printstrError = errorJson.dump();
+        *outputError = printstrError.data();
         return true;
 	}
 

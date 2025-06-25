@@ -19,8 +19,8 @@ public:
     {
         uint64_t m_vTable;               // 0x0000
         uint64_t m_pNext;                // 0x0008
-        bool     m_bRegistered;          // 0x0010
-        char     pad_0011[7];            // 0x0011
+//        bool     m_bRegistered;          // 0x0010
+//        char     pad_0011[7];            // 0x0011
         uint64_t m_pszName;              // 0x0018
         uint64_t m_pszDescription;       // 0x0020
         uint64_t m_pszDataType;          // 0x0028
@@ -33,8 +33,8 @@ public:
 
     inline static bool dump(dumpContext ctx,std::map<std::string, uint64_t>& output){
         auto matches = PS::SearchInSectionMultiple(ctx.data.data(), (".data"),
-                                                   ("\x7F\x00\x00\x00\x00\x00\x00\x00\x7F\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"),
-                                                   ("xxx?????xxxxxxxxxxx??????xx??????xx??????xx????xxxx"));
+                                                   ("\x7F\x00\x00\x00\x00\x00\x00\x00\x7F\x00\x00\x00\x00\x00\x00\x00\x7F\x00\x00\x00\x00\x00\x00\x00\x7F\x00\x00"),
+                                                   ("xxx?????xxx?????xxx?????xxx"));
         if (!matches.size()) return false;
 
         auto offsets = std::map<std::string, uint64_t>();
@@ -42,7 +42,7 @@ public:
         {
 
             auto conc = reinterpret_cast<const RawConCommand*>(ctx.data.data() + matches[i] - 5);
-            if (!conc->m_bRegistered || !conc->m_pszName || !conc->m_fnCommandCallback || conc->m_fnCommandType != 2) continue;
+            if ( !conc->m_pszName || !conc->m_fnCommandCallback || conc->m_fnCommandType != 2) continue;
 
 
 

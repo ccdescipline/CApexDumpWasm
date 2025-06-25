@@ -108,15 +108,22 @@ const handleFileChange = async (file, filelist) => {
     const outputPtr = CmakeModuleInstanse._malloc(8); // 分配指针的空间
     console.log(outputPtr);
 
+    const outputErrorPtr = CmakeModuleInstanse._malloc(8); // 分配指针的空间
+    console.log(outputErrorPtr);
+
     let status;
 
-    status = CmakeModuleInstanse._dumpAll(ptr, uint8Array.length, outputPtr);
+    status = CmakeModuleInstanse._dumpAll(ptr, uint8Array.length, outputPtr,outputErrorPtr);
 
     const resultPtr = CmakeModuleInstanse.HEAP32[outputPtr / 4];
+    const errorPtr = CmakeModuleInstanse.HEAP32[outputErrorPtr / 4];
 
     let parsetJson = JSON.parse(CmakeModuleInstanse.UTF8ToString(resultPtr));
+    let errorJson = JSON.parse(CmakeModuleInstanse.UTF8ToString(errorPtr));
     dumpObj.value = parsetJson;
     console.log(parsetJson);
+    console.log("errorJson",errorJson);
+    
 
     formatDump();
 
