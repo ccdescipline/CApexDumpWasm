@@ -41,58 +41,69 @@ ${formatWeaponSettings(dumpObj.value["weaponSettings"])}
 };
 
 const formatMics = function (ConVarsObj) {
-  const ConvarformattedData = Object.entries(ConVarsObj).map(([key, value], index) => {
-    return `${key == "" ? "{empty}" : key} = 0x${value.toString(16)}`;
-  });
+  const ConvarformattedData = Object.entries(ConVarsObj).map(
+    ([key, value], index) => {
+      return `${key == "" ? "{empty}" : key} = 0x${value.toString(16)}`;
+    }
+  );
 
   return `[Mics] \n${ConvarformattedData.join("\n")}`;
 };
 
 const formatConvar = function (ConVarsObj) {
-  const ConvarformattedData = Object.entries(ConVarsObj).map(([key, value], index) => {
-    return `${key == "" ? "{empty}" : key} = 0x${value.toString(16)}`;
-  });
+  const ConvarformattedData = Object.entries(ConVarsObj).map(
+    ([key, value], index) => {
+      return `${key == "" ? "{empty}" : key} = 0x${value.toString(16)}`;
+    }
+  );
 
   return `[Convars] \n${ConvarformattedData.join("\n")}`;
 };
 
 const formatWeaponSettings = function (ConVarsObj) {
-  const ConvarformattedData = Object.entries(ConVarsObj).map(([key, value], index) => {
-    return `${key == "" ? "{empty}" : key} = 0x${value.toString(16)}`;
-  });
+  const ConvarformattedData = Object.entries(ConVarsObj).map(
+    ([key, value], index) => {
+      return `${key == "" ? "{empty}" : key} = 0x${value.toString(16)}`;
+    }
+  );
 
   return `[weaponSettings] \n${ConvarformattedData.join("\n")}`;
 };
 
-
 const formatButtons = function (ConVarsObj) {
-  const ConvarformattedData = Object.entries(ConVarsObj).map(([key, value], index) => {
-    return `${key == "" ? "{empty}" : key} = 0x${value.toString(16)}`;
-  });
+  const ConvarformattedData = Object.entries(ConVarsObj).map(
+    ([key, value], index) => {
+      return `${key == "" ? "{empty}" : key} = 0x${value.toString(16)}`;
+    }
+  );
 
   return `[Buttons] \n${ConvarformattedData.join("\n")}`;
 };
 
 const formatRecvTable = function (RecvTableObj) {
-  const recvTableformattedData = Object.entries(RecvTableObj).map(([key, value]) => {
-    const tableinfo = Object.entries(value).map(([key, value]) => {
-      return `${key} = 0x${value.toString(16)}`;
-    });
+  const recvTableformattedData = Object.entries(RecvTableObj).map(
+    ([key, value]) => {
+      const tableinfo = Object.entries(value).map(([key, value]) => {
+        return `${key} = 0x${value.toString(16)}`;
+      });
 
-    return `[${key}]\n${tableinfo.join("\n")}\n`;
-  });
+      return `[${key}]\n${tableinfo.join("\n")}\n`;
+    }
+  );
 
   return `[RecvTable] \n${recvTableformattedData.join("\n")}`;
 };
 
 const formatdataMap = function (RecvTableObj) {
-  const recvTableformattedData = Object.entries(RecvTableObj).map(([key, value]) => {
-    const tableinfo = Object.entries(value).map(([key, value]) => {
-      return `${key} = 0x${value.toString(16)}`;
-    });
+  const recvTableformattedData = Object.entries(RecvTableObj).map(
+    ([key, value]) => {
+      const tableinfo = Object.entries(value).map(([key, value]) => {
+        return `${key} = 0x${value.toString(16)}`;
+      });
 
-    return `[${key}]\n${tableinfo.join("\n")}\n`;
-  });
+      return `[${key}]\n${tableinfo.join("\n")}\n`;
+    }
+  );
 
   return `[DataMap] \n${recvTableformattedData.join("\n")}`;
 };
@@ -113,7 +124,12 @@ const handleFileChange = async (file, filelist) => {
 
     let status;
 
-    status = CmakeModuleInstanse._dumpAll(ptr, uint8Array.length, outputPtr,outputErrorPtr);
+    status = CmakeModuleInstanse._dumpAll(
+      ptr,
+      uint8Array.length,
+      outputPtr,
+      outputErrorPtr
+    );
 
     const resultPtr = CmakeModuleInstanse.HEAP32[outputPtr / 4];
     const errorPtr = CmakeModuleInstanse.HEAP32[outputErrorPtr / 4];
@@ -122,8 +138,7 @@ const handleFileChange = async (file, filelist) => {
     let errorJson = JSON.parse(CmakeModuleInstanse.UTF8ToString(errorPtr));
     dumpObj.value = parsetJson;
     console.log(parsetJson);
-    console.log("errorJson",errorJson);
-    
+    console.log("errorJson", errorJson);
 
     formatDump();
 
@@ -146,12 +161,16 @@ function handleInputChange(value) {
 }
 
 function highlight(text) {
+  const escapeRegExp = function (string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  };
+
   if (!searchText.value) return text; // 如果没搜索，不处理
 
-  // 构造一个正则，忽略大小写
-  const regex = new RegExp(`(${searchText.value})`, "gi");
+  // 先转义用户输入，避免正则报错
+  const escaped = escapeRegExp(searchText.value);
 
-  // 替换匹配到的内容，加上 <span> 包裹
+  const regex = new RegExp(`(${escaped})`, "gi");
   return text.text.replace(regex, `<span style="color: red;">$1</span>`);
 }
 
@@ -162,34 +181,32 @@ function jumpToKeyword(line) {
   textarea.value.scrollTop = line * 18 + 10;
 }
 
-const handleExport = function(){
+const handleExport = function () {
+  // 将 JSON 对象转换为字符串
+  const jsonString = JSON.stringify(dumpObj.value, null, 2); // 第二个参数是 replacer，第三个参数是缩进空格数
 
+  // 创建一个 Blob 对象
+  const blob = new Blob([jsonString], { type: "application/json" });
 
-    // 将 JSON 对象转换为字符串
-    const jsonString = JSON.stringify(dumpObj.value, null, 2); // 第二个参数是 replacer，第三个参数是缩进空格数
+  // 创建一个临时的 <a> 标签
+  const link = document.createElement("a");
 
-    // 创建一个 Blob 对象
-    const blob = new Blob([jsonString], { type: "application/json" });
+  // 使用 URL.createObjectURL 生成下载链接
+  link.href = URL.createObjectURL(blob);
 
-    // 创建一个临时的 <a> 标签
-    const link = document.createElement("a");
+  // 指定下载的文件名
+  link.download = "offset.json";
 
-    // 使用 URL.createObjectURL 生成下载链接
-    link.href = URL.createObjectURL(blob);
+  // 触发下载
+  link.click();
 
-    // 指定下载的文件名
-    link.download = "offset.json";
-
-    // 触发下载
-    link.click();
-
-    // 清理 URL 对象
-    URL.revokeObjectURL(link.href);
-}
+  // 清理 URL 对象
+  URL.revokeObjectURL(link.href);
+};
 </script>
 
 <template>
-  <div class="content" >
+  <div class="content">
     <div class="content-top">
       <el-upload
         action=""
@@ -201,20 +218,29 @@ const handleExport = function(){
       </el-upload>
       <span v-if="isDump">
         <el-input
-        v-model="searchText"
-        style="width: 240px; margin-left: 10px"
-        @input="handleInputChange"
-        placeholder="Search"
-      />
-        <el-button type="primary" @click="handleExport" style="margin-left: 10px">Export to Json</el-button>
+          v-model="searchText"
+          style="width: 240px; margin-left: 10px"
+          @input="handleInputChange"
+          placeholder="Search"
+        />
+        <el-button
+          type="primary"
+          @click="handleExport"
+          style="margin-left: 10px"
+          >Export to Json</el-button
+        >
       </span>
-      
     </div>
     <div class="content-bottom">
       <div class="content-bottom-item" style="width: 50%; height: 100%">
-        <textarea ref="textarea" class="item-textarea" readonly rows="20" cols="80">{{
-          dumpMsg
-        }}</textarea>
+        <textarea
+          ref="textarea"
+          class="item-textarea"
+          readonly
+          rows="20"
+          cols="80"
+          >{{ dumpMsg }}</textarea
+        >
       </div>
       <div style="width: 50%; padding: 20px; overflow: auto">
         <div v-for="(item, index) in searchList" :key="index">

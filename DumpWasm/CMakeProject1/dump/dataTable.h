@@ -59,6 +59,7 @@ public:
 
             auto matches = PS::SearchInSectionMultiple(ctx.data.data(),".text","\x4C\x8D\x0D\x00\x00\x00\x00\x41\xB8\x00\x00\x00\x00\x48\x8D\x15\x00\x00\x00\x00\x48\x8D\x0D\x00\x00\x00\x00\xE8","xxx????xx????xxx????xxx????x");
 
+            int matchesCount = 0;
             if (!matches.size()) return false;
 
             for (auto i = size_t(); i < matches.size(); i++)
@@ -73,17 +74,18 @@ public:
                     auto name = ctx.data.data() + (tableProp[x].m_name - ctx.baseAddress);
 
                     offsets[tableName][name] = tableProp[x].m_offset;
+                    matchesCount++;
                 }
             }
 
-            //std::cout << "parrten1 table count " <<  offsets.size() << std::endl;
-            output = offsets;
+            std::cout << "parrten1 table count " <<  matchesCount << std::endl;
         }
 
         {
             auto matches = PS::SearchInSectionMultiple(ctx.data.data(),".text",
                                                        "\x48\x8D\x15\x00\x00\x00\x00\x41\xB8\x00\x00\x00\x00\x48\x8D\x0D\x00\x00\x00\x00\xE8"
                     ,"xxx????xx????xxx????x");
+            int matchesCount = 0;
             if (!matches.size()) return false;
 
             for (auto i = size_t(0); i < matches.size(); i++)
@@ -101,11 +103,10 @@ public:
                     auto name = ctx.data.data() + (tableProp[x].m_name - ctx.baseAddress);
 
                     offsets[tableName][name] = tableProp[x].m_offset;
+                    matchesCount++;
                 }
             }
-
-            //std::cout << "parrten2 table count " <<  offsets.size()<< std::endl;
-            output = offsets;
+            std::cout << "parrten2 table count " <<  matchesCount << std::endl;
         }
 
         {
@@ -113,6 +114,7 @@ public:
                                                        "\x48\x89\x0D\x00\x00\x00\x00\x48\x8D\x0D\x00\x00\x00\x00\xC7\x05\x00\x00\x00\x00\x00\x00\x00\x00\x48"
                     ,"xxx????xxx????xx????????x");
 
+            int matchesCount = 0;
             if (!matches.size()) return false;
 
             for (auto i = size_t(0); i < matches.size(); i++)
@@ -128,10 +130,10 @@ public:
                     auto name = ctx.data.data() + (tableProp[x].m_name - ctx.baseAddress);
 
                     offsets[tableName][name] = tableProp[x].m_offset;
+                    matchesCount++;
                 }
             }
-            std::cout << "parrten3 table count " <<  offsets.size()<< std::endl;
-            output = offsets;
+            std::cout << "parrten3 table count " <<  matchesCount << std::endl;
         }
 
         output = offsets;
