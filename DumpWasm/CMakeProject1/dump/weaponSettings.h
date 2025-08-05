@@ -39,7 +39,6 @@ public:
 
         std::uint64_t weaponSettingsArr = Pattern::FindPattern<std::uint64_t>(ctx.data,("48 8D 05 ? ? ? ? 49 63 D0"), 7);
 
-        LogE("highlightSetting : 0x%llx", highlightSetting);
         uint64_t weaponSettingsArrSize = Pattern::FindPatternByProc<uint64_t>(ctx.data,("41 8D 40 FF 3D ? ? ? ? 0F 87 ? ? ? ?"), [&](uint64_t addr, uint64_t base)->uint64_t {
             return (uint64_t)(*(UINT32*)( (uint64_t)addr + 5));
         });
@@ -69,7 +68,7 @@ public:
         }
         items[(char *)(ctx.data.data() +  WeaponDataField->name - ctx.baseAddress)] = WeaponDataField->offset;
 
-        LogE("name : %s offset 0x%x ",(ctx.data.data() +  WeaponDataField->name - ctx.baseAddress),WeaponDataField->offset);
+        //LogE("name : %s offset 0x%x ",(ctx.data.data() +  WeaponDataField->name - ctx.baseAddress),WeaponDataField->offset);
     }
 };
 

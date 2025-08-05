@@ -182,7 +182,7 @@ public:
 
 
 //-buildcubemaps
-        uintptr_t CHLClient = (Pattern::FindPattern<uintptr_t>(ctx.data,("48 8B 0D ? ? ? ? 48 8B 74 24 58"), 7));
+        uintptr_t CHLClient = (Pattern::FindPattern<uintptr_t>(ctx.data,("48 8B 0D ? ? ? ? 48 8B 74 24 50"), 7));
 
         LogE("CHLClient :%llx", CHLClient);
         if (!CHLClient) {
