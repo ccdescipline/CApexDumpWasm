@@ -54,48 +54,55 @@ extern "C" {
     bool dumpAll(const uint8_t* data, size_t size,char ** output,char ** outputError) {
 		// 将数据转换为 std::vector<uint8_t> 或 std::string 来处理
 		std::string dataStr(reinterpret_cast<const char*>(data), size);
-		
-		auto base =  get_image_base_from_pe_string(dataStr);
-		//printstr = std::format("base is {:#016x}", base);
-		dumpContext ctx = dumpContext(dataStr, base);
 
-        nlohmann::json resJson;
-        nlohmann::json errorJson;
-        std::vector<std::string> errorList;
+        try {
+            auto base =  get_image_base_from_pe_string(dataStr);
+            std::cout << "base is 0x" << std::hex << base << std::dec << std::endl;
+            //printstr = std::format("base is {:#016x}", base);
+            dumpContext ctx = dumpContext(dataStr, base);
 
-        std::map<std::string, uint64_t> convars;
+            nlohmann::json resJson;
+            nlohmann::json errorJson;
+            std::vector<std::string> errorList;
 
-        if(!Convar::dump(ctx, convars)){
+            std::map<std::string, uint64_t> convars;
+            Convar::dump(ctx, convars);
+            resJson["Convars"] = convars;
+
+            std::map<std::string, std::map<std::string, uint64_t>> dataTable;
+            dataTable::dump(ctx, dataTable);
+            resJson["RecvTable"] = dataTable;
+
+            std::map<std::string, uint64_t> buttons;
+            buttons::dump(ctx,buttons);
+            resJson["Buttons"] = buttons;
+
+            std::map<std::string, std::map<std::string, uint64_t>> dataMap;
+            dataMap::dump(ctx, dataMap);
+            resJson["dataMap"] = dataMap;
+
+            std::map<std::string, uint64_t> misc;
+            Mics::dump(ctx,misc,errorList);
+            resJson["Mics"] = misc;
+
+            std::map<std::string, uint64_t> weaponsettings;
+            weaponSettings::dump(ctx, weaponsettings);
+            resJson["weaponSettings"] = weaponsettings;
+
+            std::cout << "start dump" << std::endl;
+            printstr = resJson.dump();
+            *output = printstr.data();
+            std::cout << "end dump" << std::endl;
+
+            errorJson = errorList;
+            printstrError = errorJson.dump();
+            *outputError = printstrError.data();
+        }catch (const std::exception& e) {
+            std::cout << "Exception caught: " << e.what() << std::endl;
             return false;
         }
-        resJson["Convars"] = convars;
 
-        std::map<std::string, std::map<std::string, uint64_t>> dataTable;
-        dataTable::dump(ctx, dataTable);
-        resJson["RecvTable"] = dataTable;
 
-        std::map<std::string, uint64_t> buttons;
-        buttons::dump(ctx,buttons);
-        resJson["Buttons"] = buttons;
-
-        std::map<std::string, std::map<std::string, uint64_t>> dataMap;
-        dataMap::dump(ctx, dataMap);
-        resJson["dataMap"] = dataMap;
-
-        std::map<std::string, uint64_t> misc;
-        Mics::dump(ctx,misc,errorList);
-        resJson["Mics"] = misc;
-
-        std::map<std::string, uint64_t> weaponsettings;
-        weaponSettings::dump(ctx, weaponsettings);
-        resJson["weaponSettings"] = weaponsettings;
-
-        printstr = resJson.dump();
-        *output = printstr.data();
-
-        errorJson = errorList;
-        printstrError = errorJson.dump();
-        *outputError = printstrError.data();
         return true;
 	}
 

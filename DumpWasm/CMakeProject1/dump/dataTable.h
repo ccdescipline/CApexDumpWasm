@@ -12,6 +12,7 @@
 #include "../3rd/PS.h"
 #include "../include/json.hpp"
 #include "../NT/NTHeader.h"
+#include "../3rd/Log.h"
 
 struct RecvTable
 {
@@ -54,26 +55,37 @@ public:
 
 
     inline static bool dump(dumpContext ctx,std::map<std::string, std::map<std::string, uint64_t>>& output){
-        auto offsets = std::map<std::string, std::map<std::string, uint64_t>>();
         {
 
             auto matches = PS::SearchInSectionMultiple(ctx.data.data(),".text","\x4C\x8D\x0D\x00\x00\x00\x00\x41\xB8\x00\x00\x00\x00\x48\x8D\x15\x00\x00\x00\x00\x48\x8D\x0D\x00\x00\x00\x00\xE8","xxx????xx????xxx????xxx????x");
 
             int matchesCount = 0;
-            if (!matches.size()) return false;
+            if (!matches.size()) {
+                std::cout << "parrten1 matches Null" << std::endl;
+                return false;
+            }
 
             for (auto i = size_t(); i < matches.size(); i++)
             {
                 auto tableBase = reinterpret_cast<const RecvTable*>( (uint64_t)RVA(matches[i] + 7 + 6 + 7+ ctx.data.data(), 7));
                 auto tableName = reinterpret_cast<const char*>(ctx.data.data() + (tableBase->m_name - ctx.baseAddress));
+                if(!PS::isAsciiOnly(tableName)){
+                    continue;
+                }
                 auto tableProp = reinterpret_cast<const RecvProp*>( RVA(matches[i] + 7 + 6+ ctx.data.data(), 7));
+                if (!PS::In(ctx.baseAddress,ctx.data.size(),tableBase->m_name,8)) continue;
 
                 for (auto x = 0; x < tableBase->m_iProps; x++)
                 {
                     //if (!info->Is(tableProp[x].m_name)) continue;
+                    if(!PS::In(ctx.baseAddress,ctx.data.size(),tableProp[x].m_name,8)){
+                        continue;
+                    }
                     auto name = ctx.data.data() + (tableProp[x].m_name - ctx.baseAddress);
+                    if(!PS::isAsciiOnly(name)) continue;
 
-                    offsets[tableName][name] = tableProp[x].m_offset;
+                    output[tableName][name] = tableProp[x].m_offset;
+                    //LogE("tableName %s name %s offset %d",tableName,name,tableProp[x].m_offset);
                     matchesCount++;
                 }
             }
@@ -86,7 +98,11 @@ public:
                                                        "\x48\x8D\x15\x00\x00\x00\x00\x41\xB8\x00\x00\x00\x00\x48\x8D\x0D\x00\x00\x00\x00\xE8"
                     ,"xxx????xx????xxx????x");
             int matchesCount = 0;
-            if (!matches.size()) return false;
+            if (!matches.size()) {
+                std::cout << "parrten2 matches Null" << std::endl;
+                return false;
+            }
+
 
             for (auto i = size_t(0); i < matches.size(); i++)
             {
@@ -94,15 +110,23 @@ public:
                 auto tableProp = reinterpret_cast<const RecvProp*>( RVA(matches[i] + ctx.data.data(), 7));
                 if (!PS::In(ctx.baseAddress,ctx.data.size(),tableBase->m_name,8)) continue;
                 auto tableName = reinterpret_cast<const char*>(ctx.data.data() + (tableBase->m_name - ctx.baseAddress));
+                if(!PS::isAsciiOnly(tableName)){
+                    continue;
+                }
 
                 //std::cout<< "tableName " << tableName << std::endl;
 
                 for (auto x = 0; x < tableBase->m_iProps; x++)
                 {
 //                    if (!info->Is(tableProp[x].m_name)) continue;
+                    if(!PS::In(ctx.baseAddress,ctx.data.size(),tableProp[x].m_name,8)){
+                        continue;
+                    }
                     auto name = ctx.data.data() + (tableProp[x].m_name - ctx.baseAddress);
+                    if(!PS::isAsciiOnly(name)) continue;
 
-                    offsets[tableName][name] = tableProp[x].m_offset;
+                    output[tableName][name] = tableProp[x].m_offset;
+                    LogE("tableName %s name %s offset %d",tableName,name,tableProp[x].m_offset);
                     matchesCount++;
                 }
             }
@@ -115,7 +139,10 @@ public:
                     ,"xxx????xxx????xx????????x");
 
             int matchesCount = 0;
-            if (!matches.size()) return false;
+            if (!matches.size()){
+                std::cout << "parrten3 matches Null" << std::endl;
+                return false;
+            }
 
             for (auto i = size_t(0); i < matches.size(); i++)
             {
@@ -123,20 +150,26 @@ public:
                 auto tableProp = reinterpret_cast<const RecvProp*>(RVA(matches[i] + 7 + ctx.data.data(), 7));
                 if (!PS::In(ctx.baseAddress,ctx.data.size(),tableBase->m_name,8)) continue;
                 auto tableName = reinterpret_cast<const char*>(ctx.data.data() + (tableBase->m_name - ctx.baseAddress));
+                if(!PS::isAsciiOnly(tableName)){
+                    continue;
+                }
 
                 for (auto x = 0; x < tableBase->m_iProps; x++)
                 {
                     //if (!info->Is(tableProp[x].m_name)) continue;
+                    if(!PS::In(ctx.baseAddress,ctx.data.size(),tableProp[x].m_name,8)){
+                        continue;
+                    }
                     auto name = ctx.data.data() + (tableProp[x].m_name - ctx.baseAddress);
+                    if(!PS::isAsciiOnly(name)) continue;
 
-                    offsets[tableName][name] = tableProp[x].m_offset;
+                    output[tableName][name] = tableProp[x].m_offset;
                     matchesCount++;
                 }
             }
             std::cout << "parrten3 table count " <<  matchesCount << std::endl;
         }
 
-        output = offsets;
         return true;
     }
 

@@ -219,3 +219,16 @@ auto PS::In(uint64_t data, size_t size, uint64_t addr, size_t addr_size) -> bool
 
     return (uint64_t)data <= addr && (uint64_t)data <= addr + addr_size && addr + addr_size < (uint64_t)data + size;
 }
+
+auto PS::isAsciiOnly(const char* str) -> bool {
+    if (!str) return false; // null 指针直接返回 false
+    while (*str) {
+        unsigned char c = static_cast<unsigned char>(*str);
+        if (c < 33 || c > 126) return false; // 33~126 才是可见 ASCII
+        ++str;
+
+    }
+    return true;
+}
+
+

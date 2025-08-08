@@ -14,4 +14,6 @@ namespace PS
 	auto SearchInSectionMultiple(const char* data, const char* name, const char* sigs, const char* mask) -> std::vector<uint64_t>;
 
 	auto In(uint64_t data, size_t size, uint64_t addr, size_t addr_size) -> bool;
+
+    auto isAsciiOnly(const char* str) -> bool;
 }

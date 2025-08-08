@@ -42,7 +42,9 @@ public:
 
         auto matches = PS::SearchInSectionMultiple(ctx.data.data(), ".text", "\x48\x8D\x05\x00\x00\x00\x00\xC3", "xxx????x");
 
-        if (!matches.size()) return false;
+        if (!matches.size()){
+            std::cout << "DataMap matches Null" << std::endl;
+        }
 
         //std::cout << "matches.size()" << matches.size() << std::endl;
         //LogE("matches %d", matches.size());
@@ -87,7 +89,7 @@ public:
             }
             auto cstr = (char*)(maps->m_dataClassName - ctx.baseAddress + ctx.data.data());
             //std::cout << "cstr " << cstr << std::endl;
-            if (!std::strlen(cstr)) continue;
+            if (!std::strlen(cstr) || !PS::isAsciiOnly(cstr)) continue;
 
 
 
@@ -107,12 +109,11 @@ public:
                     continue;
                 }
 
-                auto name = (char*)(desc[j].m_fieldName  - ctx.baseAddress + ctx.data.data());
-                if (!std::strlen(name)) continue;
+                auto name = reinterpret_cast<char*>(desc[j].m_fieldName  - ctx.baseAddress + ctx.data.data());
+                if (!std::strlen(name) || !PS::isAsciiOnly(name)) continue;
 
                 output[cstr][name] = desc[j].m_fieldOffset[0];
-                //std::cout<< cstr << "." << name << " = " << std::hex << desc[j].m_fieldOffset[0] << std::endl;
-                //LogE("%s.%s = 0x%04x", cstr, name, desc[j].m_fieldOffset[0]);
+                //LogE("map %s name %s offset 0x%04x", cstr, name, desc[j].m_fieldOffset[0]);
             }
 
 

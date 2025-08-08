@@ -38,6 +38,7 @@ public:
 		std::uint64_t conVarVtable = Pattern::FindPattern<std::uint64_t>(ctx.data,("48 8B 79 ? 48 8D 05 ? ? ? ? 48 89 ? 48 8D"), 11);
 
 		if (!conVarVtable) {
+            std::cout << "can't find conVarVtable" << std::endl;
 			return false;
 		}
 
@@ -59,7 +60,10 @@ public:
 
 		//output += std::format("matches {} \r\n", matches.size());
 
-		if (!matches.size()) return false;
+		if (!matches.size()){
+            std::cout << "matches Null " << std::endl;
+            return false;
+        }
 
 
 		for (auto i = size_t(); i < matches.size(); i++) {

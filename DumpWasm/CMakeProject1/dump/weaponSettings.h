@@ -35,8 +35,6 @@ public:
     inline static bool dump(dumpContext ctx, std::map<std::string, uint64_t> &output) {
 
 
-        auto offsets = std::map<std::string, uint64_t>();
-
         std::uint64_t weaponSettingsArr = Pattern::FindPattern<std::uint64_t>(ctx.data,("48 8D 05 ? ? ? ? 49 63 D0"), 7);
 
         uint64_t weaponSettingsArrSize = Pattern::FindPatternByProc<uint64_t>(ctx.data,("41 8D 40 FF 3D ? ? ? ? 0F 87 ? ? ? ?"), [&](uint64_t addr, uint64_t base)->uint64_t {
@@ -52,9 +50,8 @@ public:
         }
 
         for (int i = 0; i < weaponSettingsArrSize * 2; ++i) {
-            readEntity(ctx, offsets, (uint64_t)(ctx.data.data() + weaponSettingsArr + i * sizeof(RawWeaponDataField)));
+            readEntity(ctx, output, (uint64_t)(ctx.data.data() + weaponSettingsArr + i * sizeof(RawWeaponDataField)));
         }
-        output = offsets;
 
 
         return true;
@@ -66,7 +63,11 @@ public:
         if(!PS::In(ctx.baseAddress,ctx.data.size(),WeaponDataField->name,8)  ){
             return;
         }
-        items[(char *)(ctx.data.data() +  WeaponDataField->name - ctx.baseAddress)] = WeaponDataField->offset;
+
+        auto weaponName = reinterpret_cast<char *>((char *)(ctx.data.data() +  WeaponDataField->name - ctx.baseAddress));
+        if(!PS::isAsciiOnly(weaponName))  return ;
+
+        items[weaponName] = WeaponDataField->offset;
 
         //LogE("name : %s offset 0x%x ",(ctx.data.data() +  WeaponDataField->name - ctx.baseAddress),WeaponDataField->offset);
     }

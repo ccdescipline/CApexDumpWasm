@@ -12,6 +12,7 @@
 #include "../3rd/PS.h"
 #include "../include/json.hpp"
 #include "../NT/NTHeader.h"
+#include "../3rd/Log.h"
 
 class buttons{
 public:
@@ -35,7 +36,11 @@ public:
         auto matches = PS::SearchInSectionMultiple(ctx.data.data(), (".data"),
                                                    ("\x7F\x00\x00\x00\x00\x00\x00\x00\x7F\x00\x00\x00\x00\x00\x00\x00\x7F\x00\x00\x00\x00\x00\x00\x00\x7F\x00\x00"),
                                                    ("xxx?????xxx?????xxx?????xxx"));
-        if (!matches.size()) return false;
+
+        if (!matches.size()) {
+            std::cout << "button matches Null" << std::endl;
+            return false;
+        };
 
         auto offsets = std::map<std::string, uint64_t>();
         for (auto i = size_t(); i < matches.size(); i++)
