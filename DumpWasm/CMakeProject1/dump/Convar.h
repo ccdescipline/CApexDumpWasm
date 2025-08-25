@@ -5,7 +5,6 @@
 #include <iostream>
 #include "../3rd/PS.h"
 #include "../include/json.hpp"
-#include "../3rd/Log.h"
 
 class Convar {
 public:
@@ -43,8 +42,6 @@ public:
 			return false;
 		}
 
-        LogE("conVarVtable %p",conVarVtable);
-
 		//output += std::format("conVarVtable {:#016x} \r\n", conVarVtable);
 
 		conVarVtable = reinterpret_cast<std::uint64_t>( conVarVtable + ctx.baseAddress);
@@ -68,35 +65,26 @@ public:
             return false;
         }
 
-        LogE("conVarVtable matches %d",matches.size());
-
 
 		for (auto i = size_t(); i < matches.size(); i++) {
 			auto offset = matches[i];
-
 			RawConVar* convar = (RawConVar*)(ctx.data.data() + offset);
 
-            if(!PS::In(ctx.baseAddress,ctx.data.size(),convar->m_pszName,8)){
-                continue;
-            }
 
 			if (!convar->m_pszDescription || !convar->m_pszName) {
 				continue;
 			}
 
-
 			std::string name = std::string((char*)convar->m_pszName - ctx.baseAddress + (std::uint64_t)ctx.data.data());
-
-            if(!PS::isAsciiOnly(name.data())) continue;
 
 			offsets[name] = offset;
 
 
 
 			//output += std::format("name {} value {:#x} \r\n", name.data(), (offset));
-            LogE("name %s : 0x%llx", name.data(),offset);
-		}
 
+			//LogE("%s %p", name.data(), offset);
+		}
 
         output = offsets;
 
