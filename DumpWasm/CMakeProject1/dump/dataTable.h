@@ -69,11 +69,13 @@ public:
             {
                 auto tableBase = reinterpret_cast<const RecvTable*>( (uint64_t)RVA(matches[i] + 7 + 6 + 7+ ctx.data.data(), 7));
                 auto tableName = reinterpret_cast<const char*>(ctx.data.data() + (tableBase->m_name - ctx.baseAddress));
+                auto tableProp = reinterpret_cast<const RecvProp*>( RVA(matches[i] + 7 + 6+ ctx.data.data(), 7));
+
+                if (!PS::In(ctx.baseAddress,ctx.data.size(),tableBase->m_name,8)) continue;
+
                 if(!PS::isAsciiOnly(tableName)){
                     continue;
                 }
-                auto tableProp = reinterpret_cast<const RecvProp*>( RVA(matches[i] + 7 + 6+ ctx.data.data(), 7));
-                if (!PS::In(ctx.baseAddress,ctx.data.size(),tableBase->m_name,8)) continue;
 
                 for (auto x = 0; x < tableBase->m_iProps; x++)
                 {
@@ -126,7 +128,7 @@ public:
                     if(!PS::isAsciiOnly(name)) continue;
 
                     output[tableName][name] = tableProp[x].m_offset;
-                    LogE("tableName %s name %s offset %d",tableName,name,tableProp[x].m_offset);
+                    //LogE("tableName %s name %s offset %d",tableName,name,tableProp[x].m_offset);
                     matchesCount++;
                 }
             }
