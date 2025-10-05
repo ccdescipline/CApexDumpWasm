@@ -10,6 +10,9 @@ const searchText = ref("");
 const searchList = ref([]);
 const textarea = ref(null); // 定义 ref
 const isDump = ref(false);
+let worker = null;
+const loading = ref(false)
+
 
 onMounted(async () => {
   console.log("hello");
@@ -17,12 +20,35 @@ onMounted(async () => {
   // const moduleInstance = await MainModule({ locateFile: (file) => myWasmUrl });
   // console.log(moduleInstance); // 输出 5
 
-  let moduleInstance = await DumpWasmModule();
 
-  CmakeModuleInstanse = moduleInstance;
-  let ressult = moduleInstance._add(2, 3);
+
+  CmakeModuleInstanse = await DumpWasmModule();
+  let ressult = CmakeModuleInstanse._add(2, 3);
   console.log(ressult); // 输出 5
-  console.log(moduleInstance);
+  console.log(CmakeModuleInstanse);
+
+
+  worker = new Worker(new URL('../wasm/wasmWorker.js', import.meta.url), { type: 'module' });
+
+   worker.onmessage = (e) => {
+    const { type, parsetJson, errorJson } = e.data;
+    if (type === 'runHeavy') {
+      dumpObj.value = parsetJson;
+      console.log("worker onmessage")
+
+      console.log(parsetJson);
+      console.log("errorJson", errorJson);
+      formatDump();
+
+      isDump.value = true; // 设置为 true，表示已经 dump 过了
+      loading.value = false;
+    }
+    
+
+  };
+
+  console.log(CmakeModuleInstanse.HEAPU8.buffer);
+  
 });
 
 const formatDump = function (dumpField) {
@@ -111,38 +137,15 @@ const formatdataMap = function (RecvTableObj) {
 const handleFileChange = async (file, filelist) => {
   if (file) {
     const arrayBuffer = await file.raw.arrayBuffer(); // 注意：要用 file.raw
-    const uint8Array = new Uint8Array(arrayBuffer);
+    const fileArray = new Uint8Array(arrayBuffer);
 
-    const ptr = CmakeModuleInstanse._malloc(uint8Array.length);
-    CmakeModuleInstanse.HEAPU8.set(uint8Array, ptr);
-    // 调用 WASM 中的处理函数，传递二进制数据
-    const outputPtr = CmakeModuleInstanse._malloc(8); // 分配指针的空间
-    console.log(outputPtr);
+    loading.value = true;
+    worker.postMessage({
+      type: 'runHeavy',
+      fileArray
+    });
 
-    const outputErrorPtr = CmakeModuleInstanse._malloc(8); // 分配指针的空间
-    console.log(outputErrorPtr);
-
-    let status;
-
-    status = CmakeModuleInstanse._dumpAll(
-      ptr,
-      uint8Array.length,
-      outputPtr,
-      outputErrorPtr
-    );
-
-    const resultPtr = CmakeModuleInstanse.HEAP32[outputPtr / 4];
-    const errorPtr = CmakeModuleInstanse.HEAP32[outputErrorPtr / 4];
-
-    let parsetJson = JSON.parse(CmakeModuleInstanse.UTF8ToString(resultPtr));
-    let errorJson = JSON.parse(CmakeModuleInstanse.UTF8ToString(errorPtr));
-    dumpObj.value = parsetJson;
-    console.log(parsetJson);
-    console.log("errorJson", errorJson);
-
-    formatDump();
-
-    isDump.value = true; // 设置为 true，表示已经 dump 过了
+    // isDump.value = true; // 设置为 true，表示已经 dump 过了
     //console.log();
   }
 };
@@ -206,7 +209,7 @@ const handleExport = function () {
 </script>
 
 <template>
-  <div class="content">
+  <div class="content" v-loading="loading">
     <div class="content-top">
       <el-upload
         action=""
