@@ -243,6 +243,23 @@ public:
         }
 
 
+        uintptr_t WeaponNames = Pattern::FindPattern<uintptr_t>(ctx.data,("74 12 48 8B 0D ? ? ? ? 48 8B 01 FF 50 58"), 9);
+        LogE("WeaponNames : 0x%p", WeaponNames);
+        if (WeaponNames == NULL) {
+            errorlist.push_back("WeaponNames un find");
+        } else{
+            output["WeaponNames"] = WeaponNames;
+        }
+
+        uintptr_t ModelNames = Pattern::FindPattern<uintptr_t>(ctx.data,("48 8B 0D ? ? ? ? 48 85 C9 74 0F 8D 42 01"), 7) ;
+        LogE("ModelNames : 0x%p", ModelNames);
+        if (ModelNames == NULL) {
+            errorlist.push_back("ModelNames un find");
+        } else{
+            output["ModelNames"] = ModelNames;
+        }
+
+
         return true;
     }
 };
