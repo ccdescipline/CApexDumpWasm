@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import DumpWasmModule from "../wasm/DumpWasm.js";
+import { ElMessage } from 'element-plus'
 
 let CmakeModuleInstanse;
 
@@ -41,6 +42,9 @@ onMounted(async () => {
       formatDump();
 
       isDump.value = true; // 设置为 true，表示已经 dump 过了
+      loading.value = false;
+    }else if(type ==='error'){
+      ElMessage.error('An error has occurred. Please check the console for details');
       loading.value = false;
     }
     

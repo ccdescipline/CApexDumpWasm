@@ -23,19 +23,30 @@ self.onmessage = async (e) => {
 
     let status;
 
-    status = Module._dumpAll(fileptr, fileArray.length, outputPtr, outputErrorPtr);
+    try {
+        status = Module._dumpAll(fileptr, fileArray.length, outputPtr, outputErrorPtr);
 
-    const resultPtr = Module.HEAP32[outputPtr / 4];
-    const errorPtr = Module.HEAP32[outputErrorPtr / 4];
+        const resultPtr = Module.HEAP32[outputPtr / 4];
+        const errorPtr = Module.HEAP32[outputErrorPtr / 4];
 
-    Module._free(fileptr);
-    Module._free(outputPtr);
-    Module._free(outputErrorPtr);
+        Module._free(fileptr);
+        Module._free(outputPtr);
+        Module._free(outputErrorPtr);
 
-    let parsetJson = JSON.parse(Module.UTF8ToString(resultPtr));
-    let errorJson = JSON.parse(Module.UTF8ToString(errorPtr));
+        let parsetJson = JSON.parse(Module.UTF8ToString(resultPtr));
+        let errorJson = JSON.parse(Module.UTF8ToString(errorPtr));
+
+        postMessage({ type, parsetJson, errorJson});
+    } catch (error) {
+        console.error("Error during WASM processing:", error);
+        postMessage({ type : "error", error});
+    }
+
+    
+
+   
     
     
-    postMessage({ type, parsetJson, errorJson});
+    
   }
 };

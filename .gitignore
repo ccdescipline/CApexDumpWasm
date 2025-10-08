@@ -1,2 +1,5 @@
 /DumpWasm/.gitignore
 /WASMLoader/.gitignore
+
+/.idea/*
+/bin/*
