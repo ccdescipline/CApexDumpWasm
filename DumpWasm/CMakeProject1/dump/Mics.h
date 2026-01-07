@@ -63,7 +63,7 @@ public:
             output["GlobalVars"] = GlobalVars;
         }
 
-        uint64_t NetworkVarTablePtr = (uint64_t)Pattern::FindPattern(ctx.data,("48 8D 15 ? ? ? ? 83 7C 11 0C 07 74 ? 48 8B D7"), 7) ;
+        uint64_t NetworkVarTablePtr = (uint64_t)Pattern::FindPattern(ctx.data,("48 8D 15 ? ? ? ? 83 7C CA 0C 07 74 ? 48 8B D7"), 7) ;
         LogE("NetworkVarTablePtr : 0x%llx", NetworkVarTablePtr);
         if (!NetworkVarTablePtr) {
             errorlist.push_back("NetworkVarTablePtr un find");
