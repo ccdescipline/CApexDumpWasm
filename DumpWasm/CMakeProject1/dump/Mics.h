@@ -45,6 +45,16 @@ public:
             output["ViewRender"] = ViewRender;
         }
 
+        uint64_t ViewMatrix = (uint64_t)Pattern::FindPatternByProc(ctx.data,("48 89 ? ? ? ? ? 49 8B B5 ? ? ? ? 49 8B 9D ? ? ? ? E8 ? ? ? ?"),[&](uint64_t addr, uint64_t base)->uint64_t {
+            return (uint64_t)(*(UINT32*)((uint64_t)addr + 10));
+        }) ;
+        LogE("ViewMatrix : 0x%llx", ViewMatrix);
+        if (!ViewMatrix) {
+            errorlist.push_back("ViewMatrix un find");
+        } else{
+            output["ViewMatrix"] = ViewMatrix;
+        }
+
 
         uint64_t NameList = (uint64_t)Pattern::FindPattern(ctx.data,("48 63 43 38 48 8D 0D ? ? ? ? 48 8D 04 40 48 8B 44 C1 E8"), 11) ;
         LogE("NameList : 0x%llx", NameList);
