@@ -45,8 +45,8 @@ public:
             output["ViewRender"] = ViewRender;
         }
 
-        uint64_t ViewMatrix = (uint64_t)Pattern::FindPatternByProc(ctx.data,("48 89 ? ? ? ? ? 49 8B B5 ? ? ? ? 49 8B 9D ? ? ? ? E8 ? ? ? ?"),[&](uint64_t addr, uint64_t base)->uint64_t {
-            return (uint64_t)(*(UINT32*)((uint64_t)addr + 10));
+        uint64_t ViewMatrix = (uint64_t)Pattern::FindPatternByProc(ctx.data,("0F 11 9F ? ? ? ? 48 89 3D ? ? ? ?"),[&](uint64_t addr, uint64_t base)->uint64_t {
+            return (uint64_t)(*(UINT32*)((uint64_t)addr + 17));
         }) ;
         LogE("ViewMatrix : 0x%llx", ViewMatrix);
         if (!ViewMatrix) {
@@ -136,8 +136,8 @@ public:
 
 
         //find string lastVisibleTime
-        uint64_t lastVisibleTime = Pattern::FindPatternByProc<uint64_t>(ctx.data,("F3 41 0F 10 81 ? ? ? ? 66 3B 77 4E 0F 83 ? ? ? ? 4C 8B 57 30 45 0F B7 62 ? 66 45 85 E4 0F 84 ? ? ? ?"),[&](uint64_t addr, uint64_t base)->uint64_t {
-            return (uint64_t)(*(UINT32*)( (uint64_t)addr + 5));
+        uint64_t lastVisibleTime = Pattern::FindPatternByProc<uint64_t>(ctx.data,("8B 8B ? ? ? ? 89 08 48 8D 15 ? ? ? ? 48 8D 4C 24 ? E8 ? ? ? ? 48 85 C0 74 08 8B 8B ? ? ? ? 89 08 48 8D 15 ? ? ? ? 48 8D 4C 24 ? E8 ? ? ? ? 48 85 C0 74 08 8B 8B ? ? ? ? 89 08 48 8D 15 ? ? ? ? 48 8D 4C 24 ? E8 ? ? ? ? 48 85 C0 74 08"),[&](uint64_t addr, uint64_t base)->uint64_t {
+            return (uint64_t)(*(UINT32*)( (uint64_t)addr + 2));
         });
 
         if(!lastVisibleTime){
@@ -162,7 +162,7 @@ public:
 
 
 //camera_origin = *(UINT32*)((FindPattern(E("0F 2E 89 ? ? ? ? 7A 58")) + 3));
-        uint64_t camera_origin = Pattern::FindPatternByProc<uint64_t>(ctx.data,("0F 2E 89 ? ? ? ? 7A 58"), [&](uint64_t addr, uint64_t base)->uint64_t {
+        uint64_t camera_origin = Pattern::FindPatternByProc<uint64_t>(ctx.data,("0F 2E 89 ? ? ? ? 7A 62"), [&](uint64_t addr, uint64_t base)->uint64_t {
             return (uint64_t)(*(UINT32*)( (uint64_t)addr + 3));
         });
         LogE("camera_origin : 0x%llx", camera_origin);
@@ -212,7 +212,7 @@ public:
 
 
 
-        uintptr_t netChannel = (uintptr_t)(Pattern::FindPattern(ctx.data,("48 ? ? ? ? ? ? E8 ? ? ? ? 84 C0 75 ? 0F B6 F3"), 7));
+        uintptr_t netChannel = (uintptr_t)(Pattern::FindPattern(ctx.data,("48 ? ? ? ? ? ? E8 ? ? ? ? 84 C0 75 ? 40 0F B6 F7"), 7));
         LogE("netChannel : %llx", netChannel);
 
         if (netChannel == NULL) {
