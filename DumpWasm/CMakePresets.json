@@ -1,73 +1,82 @@
-﻿{
+{
     "version": 3,
     "configurePresets": [
         {
-            "name": "windows-base",
+            "name": "native-base",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
+            "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
-                "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe"
-            },
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
+                "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
             }
         },
         {
-            "name": "x64-debug",
-            "displayName": "x64 Debug",
-            "inherits": "windows-base",
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
+            "name": "native-debug",
+            "displayName": "Native Debug (EXE)",
+            "description": "Native x64 debug build with logging enabled",
+            "inherits": "native-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "x64-release",
-            "displayName": "x64 Release",
-            "inherits": "x64-debug",
+            "name": "native-release",
+            "displayName": "Native Release (EXE)",
+            "description": "Native x64 release build",
+            "inherits": "native-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
         {
-            "name": "x86-debug",
-            "displayName": "x86 Debug",
-            "inherits": "windows-base",
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
+            "name": "wasm-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "C:/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+                "CMAKE_PREFIX_PATH": "C:/vcpkg/installed/wasm32-emscripten"
+            }
+        },
+        {
+            "name": "wasm-debug",
+            "displayName": "WASM Debug",
+            "description": "Emscripten debug build with logging enabled",
+            "inherits": "wasm-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "x86-release",
-            "displayName": "x86 Release",
-            "inherits": "x86-debug",
+            "name": "wasm-release",
+            "displayName": "WASM Release",
+            "description": "Emscripten release build, outputs to WASMLoader/src/wasm/",
+            "inherits": "wasm-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "native-debug",
+            "displayName": "Native Debug",
+            "configurePreset": "native-debug"
         },
         {
-          "name": "emscripten",
-          "hidden": false,
-          "generator": "Ninja",
-          "description": "Build using emscripten",
-          "binaryDir": "${sourceDir}/build/emscripten",
-          "cacheVariables": {
-            "CMAKE_BUILD_TYPE": "Release",
-            "CMAKE_TOOLCHAIN_FILE": "C:/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
-            "CMAKE_PREFIX_PATH": "C:/vcpkg/installed/wasm32-emscripten"
-          }
+            "name": "native-release",
+            "displayName": "Native Release",
+            "configurePreset": "native-release"
+        },
+        {
+            "name": "wasm-debug",
+            "displayName": "WASM Debug",
+            "configurePreset": "wasm-debug"
+        },
+        {
+            "name": "wasm-release",
+            "displayName": "WASM Release",
+            "configurePreset": "wasm-release"
         }
     ]
 }
