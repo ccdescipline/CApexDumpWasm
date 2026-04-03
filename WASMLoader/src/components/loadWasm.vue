@@ -13,6 +13,7 @@ const textarea = ref(null); // 定义 ref
 const isDump = ref(false);
 let worker = null;
 const loading = ref(false)
+const version = ref("")
 
 
 onMounted(async () => {
@@ -27,6 +28,9 @@ onMounted(async () => {
   let ressult = CmakeModuleInstanse._add(2, 3);
   console.log(ressult); // 输出 5
   console.log(CmakeModuleInstanse);
+
+  const vPtr = CmakeModuleInstanse._getVersion();
+  version.value = CmakeModuleInstanse.UTF8ToString(vPtr);
 
 
   worker = new Worker(new URL('../wasm/wasmWorker.js', import.meta.url), { type: 'module' });
@@ -249,6 +253,8 @@ const handleExport = function () {
           >Export to Json</el-button
         >
       </span>
+      <div class="top-right">
+        <span v-if="version" class="version-badge">v{{ version }}</span>
       <a
         class="github-link"
         href="https://github.com/ccdescipline/CApexDumpWasm"
@@ -268,6 +274,7 @@ const handleExport = function () {
         </svg>
         CApexDumpWasm
       </a>
+      </div>
     </div>
     <div class="content-bottom">
       <div class="content-bottom-item" style="width: 50%; height: 100%; position: relative;">
@@ -418,9 +425,24 @@ const handleExport = function () {
   height: 50pvh;
 }
 
-.github-link {
+.top-right {
   position: absolute;
   right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.version-badge {
+  font-size: 12px;
+  color: #909399;
+  background: #f0f0f0;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-family: Consolas, monospace;
+}
+
+.github-link {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -429,6 +451,7 @@ const handleExport = function () {
   font-size: 14px;
   font-weight: 500;
   transition: color 0.2s;
+  position: static;
 }
 
 .github-link:hover {

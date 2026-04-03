@@ -4,6 +4,8 @@
 
 namespace DumpCore {
 
+constexpr const char* VERSION = "1.0.0";
+
 struct DumpResult {
     std::string json;
     std::string errors;

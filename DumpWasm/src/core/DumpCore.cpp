@@ -74,6 +74,7 @@ DumpResult dumpAll(const uint8_t* data, size_t size) {
         weaponSettings::dump(ctx, weaponsettings);
         resJson["weaponSettings"] = weaponsettings;
 
+        resJson["version"] = VERSION;
         result.json = resJson.dump(4);
 
         nlohmann::json errorJson = errorList;

@@ -14,6 +14,11 @@ int add(int a, int b) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+const char* getVersion() {
+    return DumpCore::VERSION;
+}
+
+EMSCRIPTEN_KEEPALIVE
 bool dumpAll(const uint8_t* data, size_t size, char** output, char** outputError) {
     auto result = DumpCore::dumpAll(data, size);
 
