@@ -15,18 +15,20 @@ struct RawWeaponDataField {
 
 static_assert(sizeof(RawWeaponDataField) == 32, "RawWeaponDataField size must be 32 bytes");
 
-bool weaponSettings::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output) {
+bool weaponSettings::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output, std::vector<std::string>& errors) {
     std::uint64_t weaponSettingsArr = Pattern::FindPattern<std::uint64_t>(ctx.data, ("48 8D 05 ? ? ? ? 44 0F B6 44 24 ?"), 7);
 
     uint64_t weaponSettingsArrSize = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("41 8D 40 FF 3D ? ? ? ? 0F 87 ? ? ? ?"), [&](uint64_t addr, uint64_t base) -> uint64_t {
         return (uint64_t)(*(UINT32*)((uint64_t)addr + 5));
     });
     if (!weaponSettingsArrSize) {
+        errors.push_back("weaponSettingsArrSize not found");
         return false;
     }
 
     LogE("weaponSettingsArr %p", weaponSettingsArr);
     if (!weaponSettingsArr) {
+        errors.push_back("weaponSettingsArr not found");
         return false;
     }
 

@@ -5,11 +5,11 @@
 #include "NT/NTHeader.h"
 #include <iostream>
 
-bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output, std::vector<std::string>& errorlist) {
+bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output, std::vector<std::string>& errors) {
     uint64_t LocalPlayer = Pattern::FindPattern<uint64_t>(ctx.data, ("48 8D 0D ? ? ? ? 48 8B D7 FF 50 58"), 7);
     LogE("LocalPlayer : 0x%llx", LocalPlayer);
     if (!LocalPlayer) {
-        errorlist.push_back("LocalPlayer un find");
+        errors.push_back("LocalPlayer not found");
     } else {
         LocalPlayer += 8;
         output["LocalPlayer"] = LocalPlayer;
@@ -18,7 +18,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uint64_t EntityList = (uint64_t)Pattern::FindPattern(ctx.data, ("E8 ? ? ? ? 48 8D 1D ? ? ? ? 83 F8 01"), 12);
     LogE("EntityList : 0x%llx", EntityList);
     if (!EntityList) {
-        errorlist.push_back("EntityList un find");
+        errors.push_back("EntityList not found");
     } else {
         output["EntityList"] = EntityList;
     }
@@ -26,7 +26,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uint64_t ViewRender = (uint64_t)Pattern::FindPattern(ctx.data, ("48 8B 0D ? ? ? ? BA ? ? ? ? 48 8B 01 FF 50 70 48 8D 15"), 7);
     LogE("ViewRender : 0x%llx", ViewRender);
     if (!ViewRender) {
-        errorlist.push_back("ViewRender un find");
+        errors.push_back("ViewRender not found");
     } else {
         output["ViewRender"] = ViewRender;
     }
@@ -36,7 +36,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     });
     LogE("ViewMatrix : 0x%llx", ViewMatrix);
     if (!ViewMatrix) {
-        errorlist.push_back("ViewMatrix un find");
+        errors.push_back("ViewMatrix not found");
     } else {
         output["ViewMatrix"] = ViewMatrix;
     }
@@ -44,7 +44,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uint64_t NameList = (uint64_t)Pattern::FindPattern(ctx.data, ("48 63 43 38 48 8D 0D ? ? ? ? 48 8D 04 40 48 8B 44 C1 E8"), 11);
     LogE("NameList : 0x%llx", NameList);
     if (!NameList) {
-        errorlist.push_back("NameList un find");
+        errors.push_back("NameList not found");
     } else {
         output["NameList"] = NameList;
     }
@@ -52,7 +52,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uint64_t GlobalVars = (uint64_t)Pattern::FindPattern(ctx.data, ("48 8D 15 ? ? ? ? FF 50 10 85 C0"), 7);
     LogE("GlobalVars : 0x%llx", GlobalVars);
     if (!GlobalVars) {
-        errorlist.push_back("GlobalVars un find");
+        errors.push_back("GlobalVars not found");
     } else {
         output["GlobalVars"] = GlobalVars;
     }
@@ -60,7 +60,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uint64_t NetworkVarTablePtr = (uint64_t)Pattern::FindPattern(ctx.data, ("48 8D ? ? ? ? ? 83 7C ? ? ? 74 ? 48 8B D7 48 8D 0D ? ? ? ? E8 ? ? ? ? EB"), 7);
     LogE("NetworkVarTablePtr : 0x%llx", NetworkVarTablePtr);
     if (!NetworkVarTablePtr) {
-        errorlist.push_back("NetworkVarTablePtr un find");
+        errors.push_back("NetworkVarTablePtr not found");
     } else {
         output["NetworkVarTablePtr"] = NetworkVarTablePtr;
     }
@@ -68,7 +68,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uint64_t InputSystem = (uint64_t)Pattern::FindPattern(ctx.data, ("48 8D 0D ? ? ? ? 85 FD 74 ? 41 3B DE"), 7);
     LogE("InputSystem : 0x%llx", InputSystem);
     if (!InputSystem) {
-        errorlist.push_back("InputSystem un find");
+        errors.push_back("InputSystem not found");
     } else {
         output["InputSystem"] = InputSystem;
     }
@@ -76,7 +76,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uint64_t LevelName = (uint64_t)Pattern::FindPattern(ctx.data, ("48 8D 15 ? ? ? ? 48 8B 45 F8 48 8D 0D ? ? ? ?"), 7);
     LogE("LevelName : 0x%llx", LevelName);
     if (!LevelName) {
-        errorlist.push_back("LevelName un find");
+        errors.push_back("LevelName not found");
     } else {
         output["LevelName"] = LevelName;
     }
@@ -84,7 +84,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uint64_t highlightSetting = (uint64_t)Pattern::FindPattern(ctx.data, ("48 8B 05 ? ? ? ? 8B 54 01 30"), 7);
     LogE("highlightSetting : 0x%llx", highlightSetting);
     if (!highlightSetting) {
-        errorlist.push_back("highlightSetting un find");
+        errors.push_back("highlightSetting not found");
     } else {
         output["highlightSetting"] = highlightSetting;
     }
@@ -94,7 +94,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     });
     LogE("WeaponSettingsMeta_base : 0x%llx", WeaponSettingsMeta_base);
     if (!WeaponSettingsMeta_base) {
-        errorlist.push_back("WeaponSettingsMeta_base un find");
+        errors.push_back("WeaponSettingsMeta_base not found");
     } else {
         output["WeaponSettingsMeta_base"] = WeaponSettingsMeta_base;
     }
@@ -104,7 +104,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     });
     LogE("studioHdr : 0x%llx", studioHdr);
     if (!studioHdr) {
-        errorlist.push_back("studioHdr un find");
+        errors.push_back("studioHdr not found");
     } else {
         output["studioHdr"] = studioHdr;
     }
@@ -113,7 +113,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
         return (uint64_t)(*(UINT32*)((uint64_t)addr + 2));
     });
     if (!lastVisibleTime) {
-        errorlist.push_back("lastVisibleTime un find");
+        errors.push_back("lastVisibleTime not found");
     } else {
         output["lastVisibleTime"] = lastVisibleTime;
     }
@@ -123,7 +123,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     });
     LogE("m_vecAbsOrigin : 0x%llx", m_vecAbsOrigin);
     if (!m_vecAbsOrigin) {
-        errorlist.push_back("m_vecAbsOrigin un find");
+        errors.push_back("m_vecAbsOrigin not found");
     } else {
         output["m_vecAbsOrigin"] = m_vecAbsOrigin;
     }
@@ -133,7 +133,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     });
     LogE("camera_origin : 0x%llx", camera_origin);
     if (!camera_origin) {
-        errorlist.push_back("camera_origin un find");
+        errors.push_back("camera_origin not found");
     } else {
         output["camera_origin"] = camera_origin;
     }
@@ -141,7 +141,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uint64_t commandNumber = (uintptr_t)(Pattern::FindPattern(ctx.data, ("45 33 F6 8B 2D ? ? ? ?"), 9));
     LogE("commandNumber : 0x%llx", commandNumber);
     if (!commandNumber) {
-        errorlist.push_back("commandNumber un find");
+        errors.push_back("commandNumber not found");
     } else {
         output["commandNumber"] = commandNumber;
     }
@@ -149,7 +149,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uintptr_t cinput = (uintptr_t)(Pattern::FindPattern(ctx.data, ("48 8D 0D ? ? ? ? 33 D2 48 83 C4 20"), 7));
     LogE("cinput : 0x%llx", cinput);
     if (!cinput) {
-        errorlist.push_back("cinput un find");
+        errors.push_back("cinput not found");
     } else {
         output["cinput"] = cinput;
     }
@@ -157,7 +157,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uintptr_t CHLClient = (Pattern::FindPattern<uintptr_t>(ctx.data, ("48 8B 0D ? ? ? ? 48 8B 74 24 50"), 7));
     LogE("CHLClient :%llx", CHLClient);
     if (!CHLClient) {
-        errorlist.push_back("CHLClient un find");
+        errors.push_back("CHLClient not found");
     } else {
         output["CHLClient"] = CHLClient;
     }
@@ -165,15 +165,25 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uintptr_t observerList = (uintptr_t)(Pattern::FindPattern(ctx.data, ("48 8B 0D ? ? ? ? 48 85 C9 74 ? 48 8B 01 FF ? ? 48 85 C0 74 ? 48 63 4E 38"), 7));
     LogE("observerList : 0x%llx", observerList);
     if (!observerList) {
-        errorlist.push_back("observerList un find");
+        errors.push_back("observerList not found");
     } else {
         output["observerList"] = observerList;
+    }
+
+    uint64_t observer_index = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("8B 84 C8 ? ? ? ? 83 F8"), [&](uint64_t addr, uint64_t base) -> uint64_t {
+        return (uint64_t)(*(UINT32*)((uint64_t)addr + 3));
+    });
+    LogE("observer_index : 0x%llx", observer_index);
+    if (!observer_index) {
+        errors.push_back("observer_index not found");
+    } else {
+        output["observer_index"] = observer_index;
     }
 
     uintptr_t netChannel = (uintptr_t)(Pattern::FindPattern(ctx.data, ("48 ? ? ? ? ? ? E8 ? ? ? ? 84 C0 75 ? 40 0F B6 F7"), 7));
     LogE("netChannel : %llx", netChannel);
     if (netChannel == NULL) {
-        errorlist.push_back("netChannel un find");
+        errors.push_back("netChannel not found");
     } else {
         output["netChannel"] = netChannel;
     }
@@ -181,7 +191,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uintptr_t ClientState = Pattern::FindPattern<uintptr_t>(ctx.data, ("E8 ? ? ? ? 48 81 C4 68 04 00 00 C3"), 5);
     LogE("ClientState : %llx", ClientState);
     if (ClientState == NULL) {
-        errorlist.push_back("ClientState un find");
+        errors.push_back("ClientState not found");
     } else {
         output["ClientState"] = ClientState;
     }
@@ -189,7 +199,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uintptr_t SignonState = Pattern::FindPattern<uintptr_t>(ctx.data, ("C6 41 14 01 80 3D ? ? ? ? ? 74 68 80 3D ? ? ? ? ? 75 09 83 3D"), 28);
     LogE("SignonState : %llx", SignonState);
     if (SignonState == NULL) {
-        errorlist.push_back("SignonState un find");
+        errors.push_back("SignonState not found");
     } else {
         SignonState += 1;
         output["SignonState"] = SignonState;
@@ -198,7 +208,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uintptr_t localplayerHandle = (uintptr_t)(Pattern::FindPattern(ctx.data, ("44 0F 29 48 ? 8B 05 ? ? ? ? 83 F8 FF"), 11));
     LogE("localplayerHandle : %llx", localplayerHandle);
     if (localplayerHandle == NULL) {
-        errorlist.push_back("localplayerHandle un find");
+        errors.push_back("localplayerHandle not found");
     } else {
         output["localplayerHandle"] = localplayerHandle;
     }
@@ -206,7 +216,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uintptr_t WeaponNames = Pattern::FindPattern<uintptr_t>(ctx.data, ("74 12 48 8B 0D ? ? ? ? 48 8B 01 FF 50 58"), 9);
     LogE("WeaponNames : 0x%p", WeaponNames);
     if (WeaponNames == NULL) {
-        errorlist.push_back("WeaponNames un find");
+        errors.push_back("WeaponNames not found");
     } else {
         output["WeaponNames"] = WeaponNames;
     }
@@ -214,7 +224,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     uintptr_t ModelNames = Pattern::FindPattern<uintptr_t>(ctx.data, ("48 8B 0D ? ? ? ? 48 85 C9 74 0F 8D 42 01"), 7);
     LogE("ModelNames : 0x%p", ModelNames);
     if (ModelNames == NULL) {
-        errorlist.push_back("ModelNames un find");
+        errors.push_back("ModelNames not found");
     } else {
         output["ModelNames"] = ModelNames;
     }

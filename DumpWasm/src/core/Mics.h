@@ -7,5 +7,5 @@
 
 class Mics {
 public:
-    static bool dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output, std::vector<std::string>& errorlist);
+    static bool dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output, std::vector<std::string>& errors);
 };

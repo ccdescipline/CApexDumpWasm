@@ -5,7 +5,7 @@
 #include "NT/NTHeader.h"
 #include <iostream>
 
-bool buttons::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output) {
+bool buttons::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output, std::vector<std::string>& errors) {
     struct RawConCommand
     {
         uint64_t m_vTable;
@@ -25,7 +25,8 @@ bool buttons::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& outp
         ("xxx?????xxx?????xxx?????xxx"));
 
     if (!matches.size()) {
-        std::cout << "button matches Null" << std::endl;
+        LogE("button matches Null");
+        errors.push_back("ConCommand signature pattern not found");
         return false;
     };
 

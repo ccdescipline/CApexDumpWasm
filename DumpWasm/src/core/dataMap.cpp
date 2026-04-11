@@ -1,11 +1,12 @@
 #include "dataMap.h"
 #include "Pattern.h"
 #include "3rd/PS.h"
+#include "3rd/Log.h"
 #include "NT/NTHeader.h"
 #include <iostream>
 #include <cstring>
 
-bool dataMap::dump(const dumpContext& ctx, std::map<std::string, std::map<std::string, uint64_t>>& output) {
+bool dataMap::dump(const dumpContext& ctx, std::map<std::string, std::map<std::string, uint64_t>>& output, std::vector<std::string>& errors) {
     struct DataMap
     {
         uint64_t m_dataDesc;
@@ -33,7 +34,8 @@ bool dataMap::dump(const dumpContext& ctx, std::map<std::string, std::map<std::s
     auto matches = PS::SearchInSectionMultiple(ctx.data.data(), ".text", "\x48\x8D\x05\x00\x00\x00\x00\xC3", "xxx????x");
 
     if (!matches.size()) {
-        std::cout << "DataMap matches Null" << std::endl;
+        LogE("DataMap matches Null");
+        errors.push_back("DataMap signature pattern not found");
     }
 
     for (auto i = size_t(); i < matches.size(); i++)

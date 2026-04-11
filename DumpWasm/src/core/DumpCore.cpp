@@ -7,6 +7,7 @@
 #include "Mics.h"
 #include "weaponSettings.h"
 #include "NT/NTHeader.h"
+#include "3rd/Log.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <stdexcept>
@@ -43,45 +44,45 @@ DumpResult dumpAll(const uint8_t* data, size_t size) {
 
     try {
         auto base = get_image_base_from_pe_string(dataStr);
-        std::cout << "base is 0x" << std::hex << base << std::dec << std::endl;
+        LogE("base is 0x%llx", (unsigned long long)base);
 
         dumpContext ctx(std::move(dataStr), base);
 
         nlohmann::json resJson;
-        std::vector<std::string> errorList;
+        std::map<std::string, std::vector<std::string>> errors;
 
         std::map<std::string, uint64_t> convars;
-        Convar::dump(ctx, convars);
+        Convar::dump(ctx, convars, errors["Convar"]);
         resJson["Convars"] = convars;
 
         std::map<std::string, std::map<std::string, uint64_t>> dataTableResult;
-        dataTable::dump(ctx, dataTableResult);
+        dataTable::dump(ctx, dataTableResult, errors["RecvTable"]);
         resJson["RecvTable"] = dataTableResult;
 
         std::map<std::string, uint64_t> buttonsResult;
-        buttons::dump(ctx, buttonsResult);
+        buttons::dump(ctx, buttonsResult, errors["Buttons"]);
         resJson["Buttons"] = buttonsResult;
 
         std::map<std::string, std::map<std::string, uint64_t>> dataMapResult;
-        dataMap::dump(ctx, dataMapResult);
+        dataMap::dump(ctx, dataMapResult, errors["dataMap"]);
         resJson["dataMap"] = dataMapResult;
 
         std::map<std::string, uint64_t> misc;
-        Mics::dump(ctx, misc, errorList);
+        Mics::dump(ctx, misc, errors["Mics"]);
         resJson["Mics"] = misc;
 
         std::map<std::string, uint64_t> weaponsettings;
-        weaponSettings::dump(ctx, weaponsettings);
+        weaponSettings::dump(ctx, weaponsettings, errors["weaponSettings"]);
         resJson["weaponSettings"] = weaponsettings;
 
         resJson["version"] = VERSION;
         result.json = resJson.dump(4);
 
-        nlohmann::json errorJson = errorList;
+        nlohmann::json errorJson = errors;
         result.errors = errorJson.dump();
         result.success = true;
     } catch (const std::exception& e) {
-        std::cout << "Exception caught: " << e.what() << std::endl;
+        LogE("Exception caught: %s", e.what());
     }
 
     return result;

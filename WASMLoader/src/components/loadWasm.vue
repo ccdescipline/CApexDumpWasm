@@ -45,13 +45,20 @@ onMounted(async () => {
       console.log("errorJson", errorJson);
       formatDump();
 
+      const totalErrors = errorJson
+        ? Object.values(errorJson).reduce((n, arr) => n + (arr?.length || 0), 0)
+        : 0;
+      if (totalErrors > 0) {
+        ElMessage.warning(`Dump finished with ${totalErrors} warning${totalErrors === 1 ? '' : 's'}. Press F12 to see details in the console.`);
+      }
+
       isDump.value = true; // 设置为 true，表示已经 dump 过了
       loading.value = false;
     }else if(type ==='error'){
       ElMessage.error('An error has occurred. Please check the console for details');
       loading.value = false;
     }
-    
+
 
   };
 

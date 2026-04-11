@@ -1,10 +1,11 @@
 #include "Convar.h"
 #include "Pattern.h"
 #include "3rd/PS.h"
+#include "3rd/Log.h"
 #include <iostream>
 #include <vector>
 
-bool Convar::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output) {
+bool Convar::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output, std::vector<std::string>& errors) {
     struct RawConVar
     {
         std::uint64_t m_vTable;
@@ -33,7 +34,8 @@ bool Convar::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& outpu
     std::uint64_t conVarVtable = Pattern::FindPattern<std::uint64_t>(ctx.data, ("48 8B 79 ? 48 8D 05 ? ? ? ? 48 89 ? 48 8D"), 11);
 
     if (!conVarVtable) {
-        std::cout << "can't find conVarVtable" << std::endl;
+        LogE("can't find conVarVtable");
+        errors.push_back("conVarVtable not found");
         return false;
     }
 
@@ -51,7 +53,8 @@ bool Convar::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& outpu
     auto matches = PS::SearchInSectionMultiple(ctx.data.c_str(), ".data", (const char*)convarbyte(conVarVtable).data(), "xxxxxxxx");
 
     if (!matches.size()) {
-        std::cout << "matches Null " << std::endl;
+        LogE("matches Null");
+        errors.push_back("no convar vtable references in .data");
         return false;
     }
 

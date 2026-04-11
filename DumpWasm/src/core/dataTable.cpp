@@ -37,7 +37,7 @@ struct RecvProp
     uint32_t _pad4;
 };
 
-bool dataTable::dump(const dumpContext& ctx, std::map<std::string, std::map<std::string, uint64_t>>& output) {
+bool dataTable::dump(const dumpContext& ctx, std::map<std::string, std::map<std::string, uint64_t>>& output, std::vector<std::string>& errors) {
     {
         auto matches = PS::SearchInSectionMultiple(ctx.data.data(), ".text",
             "\x4C\x8D\x0D\x00\x00\x00\x00\x41\xB8\x00\x00\x00\x00\x48\x8D\x15\x00\x00\x00\x00\x48\x8D\x0D\x00\x00\x00\x00\xE8",
@@ -45,8 +45,8 @@ bool dataTable::dump(const dumpContext& ctx, std::map<std::string, std::map<std:
 
         int matchesCount = 0;
         if (!matches.size()) {
-            std::cout << "parrten1 matches Null" << std::endl;
-            return false;
+            LogE("parrten1 matches Null");
+            errors.push_back("pattern1 no matches");
         }
 
         for (auto i = size_t(); i < matches.size(); i++)
@@ -74,7 +74,7 @@ bool dataTable::dump(const dumpContext& ctx, std::map<std::string, std::map<std:
             }
         }
 
-        std::cout << "parrten1 table count " << matchesCount << std::endl;
+        LogE("parrten1 table count %d", matchesCount);
     }
 
     {
@@ -84,8 +84,8 @@ bool dataTable::dump(const dumpContext& ctx, std::map<std::string, std::map<std:
 
         int matchesCount = 0;
         if (!matches.size()) {
-            std::cout << "parrten2 matches Null" << std::endl;
-            return false;
+            LogE("parrten2 matches Null");
+            errors.push_back("pattern2 no matches");
         }
 
         for (auto i = size_t(0); i < matches.size(); i++)
@@ -110,7 +110,7 @@ bool dataTable::dump(const dumpContext& ctx, std::map<std::string, std::map<std:
                 matchesCount++;
             }
         }
-        std::cout << "parrten2 table count " << matchesCount << std::endl;
+        LogE("parrten2 table count %d", matchesCount);
     }
 
     {
@@ -120,8 +120,8 @@ bool dataTable::dump(const dumpContext& ctx, std::map<std::string, std::map<std:
 
         int matchesCount = 0;
         if (!matches.size()) {
-            std::cout << "parrten3 matches Null" << std::endl;
-            return false;
+            LogE("parrten3 matches Null");
+            errors.push_back("pattern3 no matches");
         }
 
         for (auto i = size_t(0); i < matches.size(); i++)
@@ -146,7 +146,7 @@ bool dataTable::dump(const dumpContext& ctx, std::map<std::string, std::map<std:
                 matchesCount++;
             }
         }
-        std::cout << "parrten3 table count " << matchesCount << std::endl;
+        LogE("parrten3 table count %d", matchesCount);
     }
 
     return true;

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ida-pro-mcp__server_health",
+      "mcp__ida-pro-mcp__find_bytes",
+      "mcp__ida-pro-mcp__disasm"
+    ]
+  }
+}
