@@ -31,6 +31,15 @@ bool Convar::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& outpu
 
     auto offsets = std::map<std::string, uint64_t>();
 
+    // [SIG] conVarVtable
+    // 如何找到: 搜索字符串 "logTimePrefixFloatTime" → xref进入函数 → 往上看:
+    //   off_XXX1 = off_XXX2;  <-- off_XXX2 就是 ConVar vtable
+    //   LOBYTE(v) = 7;
+    //   xmmword_XXX = 0;
+    //   off_XXX3 = &off_XXX4;
+    //   ...
+    //   qword_XXX = (__int64)"0";
+    // off_XXX2 即为目标vtable, 然后在.data段搜索该vtable指针 → 所有ConVar实例
     std::uint64_t conVarVtable = Pattern::FindPattern<std::uint64_t>(ctx.data, ("48 8B 79 ? 48 8D 05 ? ? ? ? 48 89 ? 48 8D"), 11);
 
     if (!conVarVtable) {

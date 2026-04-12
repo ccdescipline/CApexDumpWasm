@@ -31,6 +31,15 @@ bool dataMap::dump(const dumpContext& ctx, std::map<std::string, std::map<std::s
         uint64_t _pad2[5];
     };
 
+    // [SIG] DataMap getter - 匹配所有 "lea rax,[rip+X]; ret" 的微型getter函数
+    // 这是个极其通用的模式(会匹配上千个函数), 靠下面的DataMap结构体验证来过滤:
+    //   - m_dataNumFields(offset 0x08) 在 1~0x1000 范围内
+    //   - m_dataClassName(offset 0x10) 是有效的ASCII字符串指针
+    //   - m_dataDesc(offset 0x00) 是有效的DataTypeDesc数组指针
+    // 如何找到: 搜索实体类名如 "C_Player" → xref到.data段 → 存储位置即DataMap.m_dataClassName(+0x10)
+    //   往前0x10就是DataMap结构体起始, 再xref这个地址 → 就能找到对应的getter函数(lea rax,[DataMap]; ret)
+    // DataMap结构: m_dataDesc(0x00,ptr) m_dataNumFields(0x08,u32) m_dataClassName(0x10,ptr)
+    //              _pad(0x18,0x20) m_baseMap(0x28,ptr)
     auto matches = PS::SearchInSectionMultiple(ctx.data.data(), ".text", "\x48\x8D\x05\x00\x00\x00\x00\xC3", "xxx????x");
 
     if (!matches.size()) {
