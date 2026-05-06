@@ -2,6 +2,7 @@
 add_library(DumpCore STATIC
     core/DumpCore.cpp
     core/Pattern.cpp
+    core/DumpUtils.cpp
     core/Convar.cpp
     core/dataTable.cpp
     core/buttons.cpp

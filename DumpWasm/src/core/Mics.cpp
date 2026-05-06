@@ -1,9 +1,112 @@
 #include "Mics.h"
+#include "DumpUtils.h"
 #include "Pattern.h"
 #include "3rd/PS.h"
 #include "3rd/Log.h"
 #include "NT/NTHeader.h"
+#include <algorithm>
+#include <cstring>
 #include <iostream>
+
+namespace {
+
+uint64_t FindLastVisibleTimeOffset(const dumpContext& ctx) {
+    // lastVisibleTime 没有稳定的长sig，改走字符串xref定位：先找字符串，再找引用它的代码。
+    auto findStringOffsets = [&](const char* needle) {
+        auto matches = std::vector<uint64_t>();
+        auto mask = std::string(std::strlen(needle), 'x');
+
+        auto rdataMatches = PS::SearchInSectionMultiple(ctx.data.data(), ".rdata", needle, mask.c_str());
+        matches.insert(matches.end(), rdataMatches.begin(), rdataMatches.end());
+
+        auto dataMatches = PS::SearchInSectionMultiple(ctx.data.data(), ".data", needle, mask.c_str());
+        matches.insert(matches.end(), dataMatches.begin(), dataMatches.end());
+
+        if (matches.empty()) {
+            // 正常应在.rdata/.data，fallback全量搜索是为了兼容section名或布局变化。
+            auto fullMatches = PS::SearchMultiple(ctx.data.data(), ctx.data.size(), needle, mask.c_str());
+            matches.insert(matches.end(), fullMatches.begin(), fullMatches.end());
+        }
+
+        std::sort(matches.begin(), matches.end());
+        matches.erase(std::unique(matches.begin(), matches.end()), matches.end());
+        return matches;
+    };
+
+    auto findLeaXrefsToOffset = [&](uint64_t targetOffset) {
+        // x64字符串参数通常是 lea r?, [rip+disp32]，这里反算disp32确认是否指向目标字符串。
+        auto xrefs = std::vector<uint64_t>();
+
+        auto appendLeaMatches = [&](const char* sig) {
+            auto matches = PS::SearchInSectionMultiple(ctx.data.data(), ".text", sig, "xxx????");
+            for (auto leaOffset : matches) {
+                if (leaOffset + 7 > ctx.data.size()) continue;
+
+                auto target = static_cast<int64_t>(leaOffset) + 7 + DumpUtils::ReadI32(ctx.data, leaOffset + 3);
+                if (target < 0 || static_cast<uint64_t>(target) != targetOffset) continue;
+
+                xrefs.push_back(leaOffset);
+            }
+        };
+
+        appendLeaMatches("\x48\x8D\x15\x00\x00\x00\x00"); // lea rdx, [rip+disp32]
+        appendLeaMatches("\x48\x8D\x0D\x00\x00\x00\x00"); // lea rcx, [rip+disp32]
+        appendLeaMatches("\x4C\x8D\x05\x00\x00\x00\x00"); // lea r8, [rip+disp32]
+        appendLeaMatches("\x4C\x8D\x0D\x00\x00\x00\x00"); // lea r9, [rip+disp32]
+
+        std::sort(xrefs.begin(), xrefs.end());
+        xrefs.erase(std::unique(xrefs.begin(), xrefs.end()), xrefs.end());
+        return xrefs;
+    };
+
+    auto findEntityFieldStoreAfterXref = [&](uint64_t xrefOffset) -> uint64_t {
+        // 字符串xref后面的注册逻辑会把 entity 字段写到返回指针：mov reg32,[rbx+offset] -> mov [rax],reg32。
+        const auto* bytes = reinterpret_cast<const uint8_t*>(ctx.data.data());
+        const auto end = std::min<uint64_t>(ctx.data.size(), xrefOffset + 0x100);
+
+        for (auto offset = xrefOffset; offset + 6 <= end; ++offset) {
+            if (bytes[offset] != 0x8B) continue;
+
+            auto modrm = bytes[offset + 1];
+            // mod=10b 表示disp32，r/m=011b 表示rbx：即 mov reg32, [rbx+disp32]。
+            if ((modrm & 0xC0) != 0x80 || (modrm & 0x07) != 0x03) continue;
+
+            auto reg = (modrm >> 3) & 7;
+            auto fieldOffset = DumpUtils::ReadU32(ctx.data, offset + 2);
+            if (!fieldOffset || fieldOffset > 0x4000) continue;
+
+            const auto storeEnd = std::min<uint64_t>(end, offset + 6 + 0x10);
+            for (auto storeOffset = offset + 6; storeOffset + 2 <= storeEnd; ++storeOffset) {
+                if (bytes[storeOffset] != 0x89) continue;
+
+                auto storeModrm = bytes[storeOffset + 1];
+                // 目标必须是[rax]，源寄存器必须和上一条load一致，避免误取附近无关字段。
+                if ((storeModrm & 0xC0) != 0x00 || (storeModrm & 0x07) != 0x00) continue;
+                if (((storeModrm >> 3) & 7) != reg) continue;
+
+                return fieldOffset;
+            }
+        }
+
+        return 0;
+    };
+
+    auto stringOffsets = findStringOffsets("lastVisibleTime");
+    for (auto stringOffset : stringOffsets) {
+        auto xrefs = findLeaXrefsToOffset(stringOffset);
+        for (auto xref : xrefs) {
+            auto fieldOffset = findEntityFieldStoreAfterXref(xref);
+            if (fieldOffset) {
+                LogE("lastVisibleTime xref 0x%llx field 0x%llx", xref, fieldOffset);
+                return fieldOffset;
+            }
+        }
+    }
+
+    return 0;
+}
+
+} // namespace
 
 bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output, std::vector<std::string>& errors) {
     // [SIG] LocalPlayer - 通过virtual call加载LocalPlayer全局指针
@@ -189,25 +292,27 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
         output["studioHdr"] = studioHdr;
     }
 
-    // [SIG] lastVisibleTime - entity可见性时间戳偏移
-    // 反汇编: 3次重复的相似代码块, 每块是:
-    //         mov ecx, [rbx+offset]        ; 8B 8B xx xx xx xx  ← 第1次的offset就是目标
-    //         mov [rax], ecx               ; 89 08
-    //         lea rdx, [rip+?]             ; 48 8D 15 xx xx xx xx
-    //         lea rcx, [rsp+?]             ; 48 8D 4C 24 ??
-    //         call sub_XXX                 ; E8 xx xx xx xx
-    //         test rax, rax / jz +8        ; 48 85 C0 74 08
-    // proc返回 *(UINT32*)(addr+2) = 第1个 mov ecx,[rbx+X] 的disp32 = lastVisibleTime偏移
-    // 如何找到: 搜索字符串 "lastVisibleTime" → xref进入函数(大函数,~0x2156字节)
-    //   该字符串作为脚本变量名出现, sig的3次重复模式就在该字符串引用附近
-    //   同函数还有字符串: "isVisible", "tiFlags", "damageComboLatestUpdateTime" 等
-    uint64_t lastVisibleTime = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("8B 8B ? ? ? ? 89 08 48 8D 15 ? ? ? ? 48 8D 4C 24 ? E8 ? ? ? ? 48 85 C0 74 08 8B 8B ? ? ? ? 89 08 48 8D 15 ? ? ? ? 48 8D 4C 24 ? E8 ? ? ? ? 48 85 C0 74 08 8B 8B ? ? ? ? 89 08 48 8D 15 ? ? ? ? 48 8D 4C 24 ? E8 ? ? ? ? 48 85 C0 74 08"), [&](uint64_t addr, uint64_t base) -> uint64_t {
-        return (uint64_t)(*(UINT32*)((uint64_t)addr + 2));
-    });
+    // [XREF] lastVisibleTime - entity可见性时间戳偏移
+    // 反汇编: lea rdx, [rip+"lastVisibleTime"] → call注册/查找 → mov ecx, [rbx+offset] → mov [rax], ecx
+    // 如何找到: 搜索字符串 "lastVisibleTime" → 找.text里的RIP相对lea xref → xref后取第一个mov reg32,[rbx+offset]
+    uint64_t lastVisibleTime = FindLastVisibleTimeOffset(ctx);
     if (!lastVisibleTime) {
         errors.push_back("lastVisibleTime not found");
     } else {
         output["lastVisibleTime"] = lastVisibleTime;
+    }
+
+    // [SIG] m_viewangle - player视角角度偏移
+    // 反汇编: mov [rbx+viewAngleX], eax / mov [rbx+viewAngleY], eax / mov [rbx+viewAngleZ], eax
+    // proc返回 *(UINT32*)(addr+2) = 第一条 mov [rbx+X], eax 的disp32
+    uint64_t m_viewangle = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("89 83 ? ? ? ? 8B 47 ? 89 83 ? ? ? ? 8B 47 ? 89 83 ? ? ? ? 48 8B 05 ? ? ? ? 83 78 ? 00"), [&](uint64_t addr, uint64_t base) -> uint64_t {
+        return (uint64_t)(*(UINT32*)((uint64_t)addr + 2));
+    });
+    LogE("m_viewangle : 0x%llx", m_viewangle);
+    if (!m_viewangle) {
+        errors.push_back("m_viewangle not found");
+    } else {
+        output["m_viewangle"] = m_viewangle;
     }
 
     // [SIG] m_vecAbsOrigin - entity绝对坐标偏移
@@ -336,15 +441,10 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
         output["netChannel"] = netChannel;
     }
 
-    // [SIG] ClientState - 客户端状态getter函数地址
-    // 反汇编: call GetClientState    ; E8 xx xx xx xx
-    //         add rsp, 0x468         ; 48 81 C4 68 04 00 00
-    //         ret                    ; C3
-    // RVA=5 解析 call 目标 → 得到 GetClientState 函数地址
-    // 如何找到: 搜索字符串 "#DISCONNECT_IDLE" 或 "Disconnect: " → xref进入断线处理函数
-    //   函数结尾: call GetClientState / add rsp,0x468 / ret
-    //   0x468 是该函数的栈帧大小, 很独特, sig有2个匹配(两处call都在同一函数尾部)
-    uintptr_t ClientState = Pattern::FindPattern<uintptr_t>(ctx.data, ("E8 ? ? ? ? 48 81 C4 68 04 00 00 C3"), 5);
+
+    uintptr_t ClientState = Pattern::FindPatternByProc<uintptr_t>(ctx.data,("E8 ? ? ? ? 48 81 C4 68 04 00 00 C3"), [&](uint64_t addr, uint64_t base)->uint64_t {
+        return (uint64_t)(RVA(addr - 7, 7) - (uintptr_t)base);
+    });
     LogE("ClientState : %llx", ClientState);
     if (ClientState == NULL) {
         errors.push_back("ClientState not found");
