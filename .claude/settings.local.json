@@ -3,7 +3,22 @@
     "allow": [
       "mcp__ida-pro-mcp__server_health",
       "mcp__ida-pro-mcp__find_bytes",
-      "mcp__ida-pro-mcp__disasm"
+      "mcp__ida-pro-mcp__disasm",
+      "mcp__ida-pro-mcp__survey_binary",
+      "mcp__ida-pro-mcp__analyze_function",
+      "mcp__ida-pro-mcp__xrefs_to",
+      "mcp__ida-pro-mcp__trace_data_flow",
+      "mcp__ida-pro-mcp__get_bytes",
+      "mcp__ida-pro-mcp__get_string",
+      "mcp__ida-pro-mcp__find_regex",
+      "mcp__ida-pro-mcp__define_func",
+      "mcp__ida-pro-mcp__lookup_funcs",
+      "mcp__ida-pro-mcp__analyze_batch",
+      "mcp__ida-pro-mcp__xref_query",
+      "mcp__ida-pro-mcp__callees",
+      "mcp__ida-pro-mcp__py_eval",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
