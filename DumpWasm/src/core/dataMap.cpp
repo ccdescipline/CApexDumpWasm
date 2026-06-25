@@ -28,8 +28,11 @@ bool dataMap::dump(const dumpContext& ctx, std::map<std::string, std::map<std::s
         uint64_t _pad1[5];
         uint64_t m_td;
         int32_t  m_fieldSizeInBytes;
-        uint64_t _pad2[5];
+        uint64_t _pad2[6];
     };
+
+    static_assert(sizeof(DataMap) == 0x30, "DataMap layout changed");
+    static_assert(sizeof(DataTypeDesc) == 0x88, "DataTypeDesc layout changed");
 
     // [SIG] DataMap getter - 匹配所有 "lea rax,[rip+X]; ret" 的微型getter函数
     // 这是个极其通用的模式(会匹配上千个函数), 靠下面的DataMap结构体验证来过滤:
