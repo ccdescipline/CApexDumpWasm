@@ -360,11 +360,14 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     }
 
     // [SIG] cinput - CInput全局实例指针
-    // 反汇编: lea rcx, [rip+CInput]  ; 48 8D 0D xx xx xx xx
-    //         xor edx, edx           ; 33 D2
-    //         add rsp, 0x20          ; 48 83 C4 20  (函数尾声)
-    // 如何找到: [无直接字符串引用] 函数是.rdata vtable中的第4个条目, 无字符串引用链
-    uintptr_t cinput = (uintptr_t)(Pattern::FindPattern(ctx.data, ("48 8D 0D ? ? ? ? 33 D2 48 83 C4 20"), 7));
+    // 反汇编: mov rcx, [rip+CInput]      ; 48 8B 0D xx xx xx xx
+    //         mov rax, [rcx]              ; 48 8B 01
+    //         call qword ptr [rax+0x240]  ; FF 90 40 02 00 00
+    //         sub ebx, 0x73               ; 83 EB 73
+    // 如何找到: 搜索字符串 "UI_Menu_Back" → xref进入本函数(按键/菜单处理)
+    //   sig 在同函数内该字符串引用上方: 先加载 cinput 并 call vtable[+0x240], 再 sub ebx,0x73
+    // RVA=7: 解析第1条 mov rcx,[rip+X]
+    uintptr_t cinput = (uintptr_t)(Pattern::FindPattern(ctx.data, ("48 8B 0D ? ? ? ? ? ? ? FF 90 ? ? ? ? 83 EB"), 7));
     LogE("cinput : 0x%llx", cinput);
     if (!cinput) {
         errors.push_back("cinput not found");
@@ -515,6 +518,43 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
         errors.push_back("ModelNames not found");
     } else {
         output["ModelNames"] = ModelNames;
+    }
+
+    // [SIG] m_scriptName - C_BaseEntity 脚本名字符串缓冲偏移
+    // 反汇编: lea rax, [rcx+0x590]  ; 48 8D 81 90 05 00 00
+    //         ret                   ; C3
+    // proc返回 *(UINT32*)(addr+3) = lea 的 imm32 = entity 中 scriptName 字段偏移
+    // 如何找到: 这是 GetScriptName 极小 getter (lea+ret)
+    //   客户端类注册函数里会 lea rax, GetScriptName 后注册到 "C_BaseEntity"
+    //   或直接搜字节: 48 8D 81 90 05 00 00 C3
+    //   3.0.5.25 验证: imm=0x590
+    uint64_t m_scriptName = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("48 8D 81 90 05 00 00 C3"), [&](uint64_t addr, uint64_t base) -> uint64_t {
+        return (uint64_t)(*(UINT32*)((uint64_t)addr + 3));
+    });
+    LogE("m_scriptName : 0x%llx", m_scriptName);
+    if (!m_scriptName) {
+        errors.push_back("m_scriptName not found");
+    } else {
+        output["m_scriptName"] = m_scriptName;
+    }
+
+    // [SIG] m_weaponClassName - weapon embed 的 className 缓冲偏移
+    // 反汇编: lea rax, [rcx+0x18C0]  ; 48 8D 81 C0 18 00 00  (3.0.5.x)
+    //         ret                    ; C3
+    // proc返回 *(UINT32*)(addr+3) = lea 的 imm32 = weapon 中 weaponClassName 字段偏移
+    // 如何找到: 这是 GetWeaponClassName 极小 getter (lea+ret)
+    //   客户端类注册函数里会 lea rax, GetWeaponClassName 后注册到 "C_WeaponX"
+    //   或直接搜字节: 48 8D 81 ? 18 00 00 C3
+    //   注意: imm 高字节固定 0x18, 低字节会随版本变 (0x18C0 / 0x18D0 等)
+    //   3.0.5.25 验证: imm=0x18C0
+    uint64_t m_weaponClassName = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("48 8D 81 ? 18 00 00 C3"), [&](uint64_t addr, uint64_t base) -> uint64_t {
+        return (uint64_t)(*(UINT32*)((uint64_t)addr + 3));
+    });
+    LogE("m_weaponClassName : 0x%llx", m_weaponClassName);
+    if (!m_weaponClassName) {
+        errors.push_back("m_weaponClassName not found");
+    } else {
+        output["m_weaponClassName"] = m_weaponClassName;
     }
 
     return true;
