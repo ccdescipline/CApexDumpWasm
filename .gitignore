@@ -1,5 +1,26 @@
-/DumpWasm/.gitignore
-/WASMLoader/.gitignore
+# IDE
+.idea/
+*.iml
+.vs/
 
-/.idea/*
-/bin/*
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# C++ / CMake
+DumpWasm/build/
+DumpWasm/cmake-build-*/
+CMakeUserPresets.json
+
+# Frontend
+WASMLoader/node_modules/
+WASMLoader/dist/
+WASMLoader/stats.html
+
+# Local pnpm artifacts (repo uses npm / package-lock.json)
+WASMLoader/pnpm-lock.yaml
+WASMLoader/pnpm-workspace.yaml
+
+# Binaries
+/bin/
