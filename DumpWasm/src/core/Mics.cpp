@@ -130,7 +130,7 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     //         cmp eax, 1                ; 83 F8 01
     // 如何找到: [无直接字符串引用] 函数通过vtable间接调用进入, 无法通过字符串定位
     // RVA=12: 解析第2条指令 lea rbx (从匹配起始+5开始7字节)
-    uint64_t EntityList = (uint64_t)Pattern::FindPattern(ctx.data, ("E8 ? ? ? ? 48 8D 1D ? ? ? ? 83 F8 01"), 12);
+    uint64_t EntityList = (uint64_t)Pattern::FindPattern(ctx.data, ("8B 01 83 F8 FF 74 ? 0F B7 C8 48 8D 15 ? ? ? ? 48 C1 E1 05 48 03 CA"), 17);
     LogE("EntityList : 0x%llx", EntityList);
     if (!EntityList) {
         errors.push_back("EntityList not found");
