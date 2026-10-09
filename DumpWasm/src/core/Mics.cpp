@@ -316,10 +316,12 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     }
 
     // [SIG] m_vecAbsOrigin - entity绝对坐标偏移
-    // 反汇编: movq xmm2, qword ptr [rdi+absOriginOff]  ; F3 0F 7E 97 xx xx xx xx
-    // 极短pattern(4字节), 但在首个匹配位置提取 addr+4 处的disp32 = entity偏移
-    // 如何找到: [无直接字符串引用] 函数通过vtable间接调用进入, 包含大量SIMD运动/位置计算
-    uint64_t m_vecAbsOrigin = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("F3 0F 7E 97"), [&](uint64_t addr, uint64_t base) -> uint64_t {
+    // 2.44: 槽位仍是 0x170, 但存的是 Vector*。GetAbsOrigin = mov rax,[rbx+170h]
+    // 反汇编: movss xmm0, [rcx+absOriginOff]  ; F3 0F 10 81 xx xx xx xx
+    //         addps xmm7, xmm1                ; 0F 58 F9
+    //         movss xmm1, [rcx+off2]          ; F3 0F 10 89
+    // proc返回 addr+4 处的disp32 = entity偏移; 这条sig只取出槽位, 坐标要再解一次引用
+    uint64_t m_vecAbsOrigin = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("F3 0F 10 81 ? ? ? ? 0F 58 F9 F3 0F 10 89"), [&](uint64_t addr, uint64_t base) -> uint64_t {
         return (uint64_t)(*(UINT32*)((uint64_t)addr + 4));
     });
     LogE("m_vecAbsOrigin : 0x%llx", m_vecAbsOrigin);
@@ -395,15 +397,16 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     // 反汇编: mov rcx, [rip+observerList]  ; 48 8B 0D xx xx xx xx
     //         test rcx, rcx                 ; 48 85 C9
     //         jz +?                         ; 74 ?
-    //         mov rax, [rcx]                ; 48 8B 01
-    //         call qword ptr [rax+?]        ; FF ?? ??
+    //         mov rax, [rcx]                ; 48 8B 01 (已通配)
+    //         call qword ptr [rax+?]        ; FF 50 ?
+    //         mov rcx, rax                  ; 48 8B C8
     //         test rax, rax                 ; 48 85 C0
     //         jz +?                         ; 74 ?
-    //         movsxd rcx, [rsi+0x38]        ; 48 63 4E 38  (读观察者index)
+    //         movsxd rax, [rsi]             ; 48 63 46  (读观察者index)
     // 如何找到: 搜索字符串 "lastVisibleTime" → xref进入大函数(~0x2156字节)
     //   该大函数调用本函数(sub_7FF72CFA3750, observer lookup), sig在本函数内
     //   下一个sig observer_index 也在同一个函数里
-    uintptr_t observerList = (uintptr_t)(Pattern::FindPattern(ctx.data, ("48 8B 0D ? ? ? ? 48 85 C9 74 ? 48 8B 01 FF ? ? 48 85 C0 74 ? 48 63 4E 38"), 7));
+    uintptr_t observerList = (uintptr_t)(Pattern::FindPattern(ctx.data, ("48 8B 0D ? ? ? ? 48 85 C9 74 ? ? ? ? FF 50 ? 48 8B C8 48 85 C0 74 ? 48 63 46"), 7));
     LogE("observerList : 0x%llx", observerList);
     if (!observerList) {
         errors.push_back("observerList not found");
@@ -412,13 +415,17 @@ bool Mics::dump(const dumpContext& ctx, std::map<std::string, uint64_t>& output,
     }
 
     // [SIG] observer_index - 观察者索引数组的偏移
-    // 反汇编: mov eax, [rax+rcx*8+observerIdxOff]  ; 8B 84 C8 xx xx xx xx
-    //         cmp eax, imm                          ; 83 F8 ??
-    // proc返回 addr+3 处的disp32 = 观察者index数组在某个对象里的偏移
+    // 2.44: add rax, 0x94; add rax,rax; mov rax,[rcx+rax*8]
+    //   handle = **(EHandle**)(list + 16*(entIndex + observer_index))
+    //   (旧版 1.28 是 *(EHandle*)(list + 8*entIndex + 0x974))
+    // 反汇编: add rax, observerIdxOff      ; 48 05 xx xx xx xx
+    //         add rax, rax                 ; 48 03 C0
+    //         mov rax, [rcx+rax*8]         ; 48 8B 04 C1
+    // proc返回 addr+2 处的imm32 = 观察者index偏移
     // 如何找到: 与observerList在同一个函数里, 紧跟observerList加载之后的索引计算
     //   路径同上: "lastVisibleTime" → 大函数 → 本函数(sub_7FF72CFA3750)
-    uint64_t observer_index = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("8B 84 C8 ? ? ? ? 83 F8"), [&](uint64_t addr, uint64_t base) -> uint64_t {
-        return (uint64_t)(*(UINT32*)((uint64_t)addr + 3));
+    uint64_t observer_index = Pattern::FindPatternByProc<uint64_t>(ctx.data, ("48 05 ? ? ? ? 48 03 C0 48 8B 04 C1"), [&](uint64_t addr, uint64_t base) -> uint64_t {
+        return (uint64_t)(*(UINT32*)((uint64_t)addr + 2));
     });
     LogE("observer_index : 0x%llx", observer_index);
     if (!observer_index) {
